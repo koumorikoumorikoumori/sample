@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ミツバチ・スカウト|8の字ダンス アクションゲーム</title>
+<style>
+:root{
+  --paper:#e8ecea;
+  --card:#ffffff;
+  --ink:#18211d;
+  --sub:#57635c;
+  --line:#c1cbc4;
+  --honey:#a8730f;
+  --forest:#245b4b;
+  --brick:#8f3b2e;
+  --mark:#ffeeb5;
+  --ok:#15654a;
+  --ng:#8f3b2e;
+  --focus:#0b63c5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px;line-height:1.7;-webkit-text-size-adjust:100%;
+  overscroll-behavior:none;
+}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:960px;margin:0 auto;padding:10px 10px 40px}
+header.head{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin-bottom:10px}
+header.head .eyebrow{font-size:.74rem;letter-spacing:.18em;color:var(--sub);margin:0}
+header.head h1{font-size:1.2rem;margin:2px 0 0;letter-spacing:.02em}
+
+/* HUD */
+.hud{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hud .cell{flex:1 1 96px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 10px;min-width:0}
+.hud .cell b{display:block;font-size:.72rem;color:var(--sub);font-weight:700;letter-spacing:.06em}
+.hud .cell span{font-size:1.02rem;font-weight:700;white-space:nowrap}
+
+/* Canvas */
+.stage{position:relative;background:#0f1512;border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(15,21,18,.82);color:#fff;text-align:center}
+.overlay.hide{display:none}
+.overlay .box{max-width:520px}
+.overlay h2{margin:0 0 8px;font-size:1.2rem}
+.overlay p{margin:0 0 10px;font-size:.95rem;line-height:1.7}
+.overlay .lead{background:rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.92rem;text-align:left}
+.overlay .lead b{color:#ffe08a}
+
+/* Controls */
+.pad{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.pad .hint{font-size:.9rem;color:var(--sub);margin:0}
+.rowc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.btn{min-height:58px;padding:8px 18px;font-size:1rem;font-weight:700;font-family:inherit;
+  background:var(--ink);color:#fff;border:none;border-radius:12px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.btn.sub{background:#f1f5f2;color:var(--ink);border:2px solid var(--line)}
+.btn.big{min-height:76px;flex:1 1 220px;font-size:1.12rem;background:var(--forest)}
+.btn.big.pressed{background:var(--honey)}
+.btn.rot{min-width:78px;font-size:1.05rem}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.angleread{min-width:130px;text-align:center;font-size:1.15rem;font-weight:700;
+  background:#f1f5f2;border:2px solid var(--line);border-radius:10px;padding:6px 10px}
+
+/* memo */
+.memo{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.memo h3{margin:0 0 6px;font-size:1rem;border-bottom:2px solid var(--ink);padding-bottom:5px}
+.memo ul{margin:6px 0;padding-left:1.2em;font-size:.93rem}
+.memo table{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:6px}
+.memo th,.memo td{border:1px solid var(--line);padding:5px 8px;text-align:left}
+.memo th{background:#f1f5f2;white-space:nowrap}
+.note{font-size:.85rem;color:var(--sub)}
+details.safety{margin-top:10px;background:#fff8e6;border:1px solid #d9bd77;border-radius:10px;padding:8px 14px}
+details.safety summary{font-weight:700;cursor:pointer;min-height:46px;display:flex;align-items:center}
+details.safety ul{margin:6px 0 0;padding-left:1.2em;font-size:.92rem}
+.diffrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.diffrow button{min-height:58px;flex:1 1 130px;padding:6px 10px;font-size:.95rem;font-weight:700;font-family:inherit;
+  background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:10px;cursor:pointer}
+.diffrow button[aria-pressed="true"]{background:#fff;color:var(--ink);border-color:#fff}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="head">
+  <p class="eyebrow">高校生物 生物の環境応答 ─ 動物の反応と行動</p>
+  <h1>ミツバチ・スカウト 〜8の字ダンスで仲間を導け〜</h1>
+</header>
+
+<div class="hud">
+  <div class="cell"><b>ラウンド</b><span class="num" id="hRound">1 / 5</span></div>
+  <div class="cell"><b>時刻</b><span class="num" id="hTime">9:00</span></div>
+  <div class="cell"><b>太陽の方位</b><span class="num" id="hSun">—</span></div>
+  <div class="cell"><b>体力</b><span class="num" id="hHp">100</span></div>
+  <div class="cell"><b>集めた蜜</b><span class="num" id="hHoney">0</span></div>
+</div>
+
+<div class="stage">
+  <canvas id="cv" width="900" height="600"></canvas>
+  <div class="overlay" id="ov">
+    <div class="box" id="ovBox"></div>
+  </div>
+</div>
+
+<div class="pad" id="pad">
+  <p class="hint" id="hint"></p>
+  <div class="rowc" id="ctrl"></div>
+</div>
+
+<div class="memo">
+  <h3>ダンスの決まり(こまったらここを見る)</h3>
+  <table>
+    <tr><th>巣板の「真上」</th><td>太陽の方向を表す(巣の中は暗いので、重力を手がかりにしている)</td></tr>
+    <tr><th>直進部の傾き θ</th><td>太陽の方向から餌場の方向までの角。右に傾けば太陽の右側、左に傾けば左側</td></tr>
+    <tr><th>直進部の長さ(時間)</th><td>距離。この教材の目安は <b class="num">時間(秒) = 0.4 + 距離(m) ÷ 1000</b></td></tr>
+    <tr><th>円形ダンス</th><td>餌場がごく近いとき(およそ50〜100m以下が目安)に見られ、向きの情報はふくまれない</td></tr>
+  </table>
+  <ul>
+    <li>θ の求め方:<b class="num">θ = 花畑の方位 − 太陽の方位</b>。プラスなら右、マイナスなら左に傾ける。</li>
+    <li>時間がたつと太陽が動くので、<b>同じ花畑でもラウンドごとに正しい角度は変わります</b>。</li>
+    <li>ゲーム内の数値は学習用に単純化した目安です。実際のミツバチの値は種類や条件によって変わります。</li>
+  </ul>
+  <p class="note">操作:画面をタップ(またはドラッグ)した方向へ飛ぶ/キーボードは矢印キー。ダンスは下のボタン、またはキーボードの ← → とスペースキー(長おし)。</p>
+</div>
+
+<details class="safety">
+  <summary>⚠ 実物のミツバチを観察するときの安全上の注意</summary>
+  <ul>
+    <li>ハチアレルギー・刺された経験・ぜんそくなどがある人は、必ず事前に教員へ申し出る。屋外での接近はしない。</li>
+    <li>観察は必ず教員の指示のもとで。巣の出入口の前(ハチの通り道)には立たない。</li>
+    <li>白っぽい長袖・長ズボン。黒っぽい服や強い香り(香水・整髪料)はさける。必要に応じて面布・手袋を着用する。</li>
+    <li>ハチが飛んできても手で払わない、走らない、大声を出さない。静かにその場を離れる。</li>
+    <li>刺されたら針を取り除き、流水で洗って冷やし、すぐ教員へ。じんましん・息苦しさなどがあれば救急要請を含む対応をとる。</li>
+    <li>燻煙器など火気を使う作業は教員が行う。屋外では熱中症に注意し、帽子と水分を用意する。</li>
+  </ul>
+</details>
+
+</div>
+
+<script>
+"use strict";
+var cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+var LW=900,LH=600,VS=1;
+var $=function(id){return document.getElementById(id);};
+var D2R=Math.PI/180;
+function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+function norm180(a){a=((a+180)%360+360)%360-180;return a;}
+function azName(a){
+  var n=["北","北北東","北東","東北東","東","東南東","南東","南南東","南","南南西","南西","西南西","西","西北西","北西","北北西"];
+  return n[Math.round((((a%360)+360)%360)/22.5)%16];
+}
+function fmtTime(t){var h=Math.floor(t),m=Math.round((t-h)*60);return h+":"+(m<10?"0":"")+m;}
+function sunAz(t){return 90+(t-6)/12*180;}
+
+/* ================= 設定 ================= */
+var DIFF=[
+ {k:"れんしゅう",tolA:45,tolT:0.85,hint:true,mem:true,drain:4.5,webs:4,winds:2,round:4},
+ {k:"ふつう",   tolA:30,tolT:0.55,hint:false,mem:true,drain:6.5,webs:7,winds:3,round:5},
+ {k:"ほんばん", tolA:20,tolT:0.40,hint:false,mem:false,drain:8.5,webs:10,winds:4,round:6}
+];
+
+var G={
+  phase:"title", diff:1, round:1, maxRound:5, honey:0, time:9,
+  hp:100, hpMax:100,
+  feeder:{az:0,dist:0}, webs:[], winds:[],
+  bee:{x:0,y:0,vx:0,vy:0,ang:0,hitT:0},
+  cam:{x:0,y:0},
+  danceAng:0, holding:false, holdT:0, holdDone:false, danceLeft:16,
+  runTrail:[], followers:[], recruitT:0, hits:0,
+  msg:"", flash:0, backT:0, shake:0
+};
+function catchRadius(){
+  /* 花畑にたどりつける範囲。難易度の許容角を、距離に応じた実際の幅に直す */
+  return PATCH + G.feeder.dist*Math.sin(DIFF[G.diff].tolA*0.45*D2R);
+}
+var SCALE=0.5;         /* px / m */
+var SPEED=330;         /* m / s */
+var PATCH=175;         /* 花畑の半径 m */
+
+/* ================= 入力 ================= */
+var ptr={down:false,x:0,y:0};
+var keys={};
+window.addEventListener("keydown",function(e){
+  if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].indexOf(e.key)>=0){e.preventDefault();}
+  keys[e.key]=true;
+  if(e.key===" "&&G.phase==="dance"){startHold();}
+  if(e.key==="Enter"){var b=$("ctrl").querySelector(".btn.primary");if(b){b.click();}}
+});
+window.addEventListener("keyup",function(e){
+  keys[e.key]=false;
+  if(e.key===" "&&G.phase==="dance"){endHold();}
+});
+function cvPos(e){
+  var r=cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left)/r.width*LW, y:(e.clientY-r.top)/r.height*LH};
+}
+cv.addEventListener("pointerdown",function(e){
+  cv.setPointerCapture(e.pointerId);
+  var p=cvPos(e);ptr.down=true;ptr.x=p.x;ptr.y=p.y;
+  if(G.phase==="dance"){setAngleFromPoint(p);}
+});
+cv.addEventListener("pointermove",function(e){
+  var p=cvPos(e);ptr.x=p.x;ptr.y=p.y;
+  if(ptr.down&&G.phase==="dance"&&!G.holding){setAngleFromPoint(p);}
+});
+cv.addEventListener("pointerup",function(e){ptr.down=false;});
+cv.addEventListener("pointercancel",function(){ptr.down=false;});
+
+function setAngleFromPoint(p){
+  if(G.phase!=="dance"||G.holding||G.holdDone){return;}
+  var dx=p.x-LW/2, dy=p.y-LH/2;
+  if(dx*dx+dy*dy<900){return;}
+  var a=Math.atan2(dx,-dy)/D2R;
+  G.danceAng=clamp(Math.round(a/5)*5,-180,180);
+  refreshAngle();
+}
+function refreshAngle(){
+  var rd=document.getElementById("angRead");
+  if(rd){rd.textContent=(G.danceAng>=0?"右 ":"左 ")+Math.abs(Math.round(G.danceAng))+"°";}
+}
+function nudge(v){
+  if(G.holding||G.holdDone){return;}
+  G.danceAng=clamp(G.danceAng+v,-180,180);refreshAngle();
+}
+
+/* ================= ラウンド生成 ================= */
+function newRound(){
+  var d=DIFF[G.diff];
+  var az=Math.floor(Math.random()*24)*15;
+  var dist=[300,600,900,1200,1500,1800][Math.floor(Math.random()*6)];
+  G.feeder={az:az,dist:dist};
+  var fx=Math.sin(az*D2R)*dist, fy=Math.cos(az*D2R)*dist;
+  G.webs=[];G.winds=[];
+  var i,t,r;
+  for(i=0;i<d.webs;i++){
+    t=0.18+Math.random()*0.72;
+    r=(Math.random()-0.5)*dist*0.55;
+    var px=fx*t+Math.cos(az*D2R)*r, py=fy*t-Math.sin(az*D2R)*r;
+    if(px*px+py*py<160*160){continue;}
+    G.webs.push({x:px,y:py,r:52+Math.random()*34});
+  }
+  for(i=0;i<d.winds;i++){
+    t=0.25+Math.random()*0.6;
+    r=(Math.random()-0.5)*dist*0.6;
+    var wx=fx*t+Math.cos(az*D2R)*r, wy=fy*t-Math.sin(az*D2R)*r;
+    var wa=Math.random()*360;
+    G.winds.push({x:wx,y:wy,r:150+Math.random()*90,a:wa,p:120+Math.random()*90});
+  }
+  G.bee={x:0,y:0,vx:0,vy:0,ang:az*D2R,hitT:0};
+  G.cam={x:0,y:0};
+  G.hp=G.hpMax;
+  G.danceAng=0;G.holding=false;G.holdT=0;G.holdDone=false;G.danceLeft=16;
+  G.runTrail=[];G.followers=[];G.hits=0;G.recruitT=0;
+  G.res=null;G.reachedDance=false;
+  G.memory={sun:sunAz(G.time),feedAz:az,dist:dist,seen:false};
+}
+
+/* ================= フェーズ制御 ================= */
+function setPhase(p){
+  G.phase=p;
+  var ov=$("ov"),box=$("ovBox");
+  if(p==="fly"||p==="back"||p==="dance"||p==="recruit"){ov.classList.add("hide");}
+  if(p==="title"){
+    ov.classList.remove("hide");
+    box.innerHTML='<h2>ミツバチ・スカウト</h2>'
+     +'<p>きみは花畑をさがす<b>偵察バチ</b>。花畑まで飛び、巣にもどって<b>8の字ダンス</b>で仲間に場所を伝えよう。'
+     +'ダンスの<b>角度</b>と<b>長さ</b>が正確なほど、多くの仲間が花畑にたどりつく。</p>'
+     +'<div class="lead">'
+     +'<b>①</b> 画面をタップした方向へ飛ぶ(矢印キーも可)。クモの巣は体力を大きく減らす。<br>'
+     +'<b>②</b> 巣にもどったら、巣板の上で直進部の<b>向き</b>を合わせる。<br>'
+     +'<b>③</b> ボタンを<b>長おし</b>して尻ふり走り。はなすと直進部が終わる。長さ=距離。'
+     +'</div>'
+     +'<p style="font-size:.9rem">むずかしさをえらんでスタート</p>'
+     +'<div class="diffrow" id="dfr"></div>';
+    var dr=$("dfr");
+    DIFF.forEach(function(d,i){
+      var b=document.createElement("button");
+      b.textContent=d.k;b.setAttribute("aria-pressed",i===G.diff);
+      b.addEventListener("click",function(){
+        G.diff=i;G.maxRound=d.round;
+        Array.prototype.forEach.call(dr.children,function(c,j){c.setAttribute("aria-pressed",j===i);});
+      });
+      dr.appendChild(b);
+    });
+  }
+  updateCtrl();updateHud();
+}
+function startGame(){
+  var d=DIFF[G.diff];
+  G.round=1;G.honey=0;G.time=9;G.maxRound=d.round;
+  newRound();setPhase("brief");
+  var ov=$("ov");ov.classList.remove("hide");
+  showBrief();
+}
+function showBrief(){
+  var ov=$("ov"),box=$("ovBox");
+  ov.classList.remove("hide");
+  box.innerHTML='<h2>ラウンド '+G.round+' / '+G.maxRound+'</h2>'
+   +'<p>時刻 <b class="num">'+fmtTime(G.time)+'</b> ── 太陽はほぼ <b>'+azName(sunAz(G.time))+'</b>('
+   +'方位 <span class="num">'+Math.round(sunAz(G.time))+'°</span>)</p>'
+   +'<div class="lead">花畑を見つけて、そこまで飛ぼう。とちゅうの<b>クモの巣</b>にふれると体力が大きく減る。'
+   +'<b>風のうずまき</b>は体を流す。<br>花畑の<b>方位</b>と<b>距離</b>は、着いたときに記録される。</div>'
+   +'<p style="font-size:.88rem">画面をタップ(ドラッグ)した方向へ飛ぶ。矢印キーでも動く。</p>';
+  updateCtrl();
+}
+
+/* ================= 更新 ================= */
+var last=null;
+function loop(ts){
+  if(last===null){last=ts;}
+  var dt=Math.min(0.05,(ts-last)/1000);last=ts;
+  update(dt);draw();
+  requestAnimationFrame(loop);
+}
+function update(dt){
+  if(G.flash>0){G.flash-=dt;}
+  if(G.shake>0){G.shake-=dt;}
+  if(G.phase==="fly"){updateFly(dt);}
+  else if(G.phase==="back"){G.backT+=dt;if(G.backT>1.2){G.reachedDance=true;setPhase("dance");updateCtrl();}}
+  else if(G.phase==="dance"){updateDance(dt);}
+  else if(G.phase==="recruit"){updateRecruit(dt);}
+}
+
+function updateFly(dt){
+  var b=G.bee,ax=0,ay=0;
+  if(ptr.down){
+    var dx=ptr.x-LW/2, dy=ptr.y-LH/2, L=Math.hypot(dx,dy);
+    if(L>14){ax=dx/L;ay=-dy/L;}
+  }
+  if(keys.ArrowLeft||keys.a){ax-=1;}
+  if(keys.ArrowRight||keys.d){ax+=1;}
+  if(keys.ArrowUp||keys.w){ay+=1;}
+  if(keys.ArrowDown||keys.s){ay-=1;}
+  var L2=Math.hypot(ax,ay);if(L2>1){ax/=L2;ay/=L2;}
+
+  /* 風 */
+  var i,w;
+  for(i=0;i<G.winds.length;i++){
+    w=G.winds[i];
+    var d=Math.hypot(b.x-w.x,b.y-w.y);
+    if(d<w.r){
+      var f=(1-d/w.r)*w.p;
+      b.vx+=Math.sin(w.a*D2R)*f*dt;
+      b.vy+=Math.cos(w.a*D2R)*f*dt;
+    }
+  }
+  var sp=SPEED*(b.hitT>0?0.35:1);
+  b.vx+=ax*sp*3.2*dt;b.vy+=ay*sp*3.2*dt;
+  var v=Math.hypot(b.vx,b.vy);
+  if(v>sp){b.vx=b.vx/v*sp;b.vy=b.vy/v*sp;}
+  b.vx*=Math.pow(0.06,dt);b.vy*=Math.pow(0.06,dt);
+  b.x+=b.vx*dt;b.y+=b.vy*dt;
+  if(v>8){b.ang=Math.atan2(b.vy,b.vx);}
+  if(b.hitT>0){b.hitT-=dt;}
+
+  /* クモの巣 */
+  for(i=0;i<G.webs.length;i++){
+    w=G.webs[i];
+    if(!w.hit&&Math.hypot(b.x-w.x,b.y-w.y)<w.r*0.72){
+      w.hit=true;b.hitT=1.0;G.hp-=22;G.shake=0.3;G.flash=0.25;
+    }
+  }
+  G.hp-=DIFF[G.diff].drain*dt;
+  G.cam.x+=(b.x-G.cam.x)*Math.min(1,dt*5);
+  G.cam.y+=(b.y-G.cam.y)*Math.min(1,dt*5);
+
+  var fx=Math.sin(G.feeder.az*D2R)*G.feeder.dist, fy=Math.cos(G.feeder.az*D2R)*G.feeder.dist;
+  if(Math.hypot(b.x-fx,b.y-fy)<PATCH*0.55){
+    G.memory.seen=true;
+    G.backT=0;setPhase("back");
+    return;
+  }
+  if(G.hp<=0){
+    G.hp=0;
+    endRound(true);
+  }
+  updateHud();
+}
+
+function startHold(){
+  if(G.phase!=="dance"||G.holdDone||G.holding){return;}
+  G.holding=true;G.holdT=0;G.runTrail=[];
+  var el=$("holdBtn");if(el){el.classList.add("pressed");}
+}
+function endHold(){
+  if(!G.holding){return;}
+  G.holding=false;G.holdDone=true;
+  var el=$("holdBtn");if(el){el.classList.remove("pressed");}
+  setTimeout(judgeDance,450);
+}
+function updateDance(dt){
+  if(G.holding){G.holdT+=dt;if(G.holdT>4.5){endHold();}}
+  else if(!G.holdDone){
+    G.danceLeft-=dt;
+    if(keys.ArrowLeft){nudge(-70*dt);}
+    if(keys.ArrowRight){nudge(70*dt);}
+    if(G.danceLeft<=0){G.danceLeft=0;G.holdDone=true;G.holdT=0;setTimeout(judgeDance,300);}
+  }
+}
+
+function targetTheta(){return norm180(G.feeder.az-sunAz(G.time));}
+function targetSec(){return 0.4+G.feeder.dist/1000;}
+
+function judgeDance(){
+  var d=DIFF[G.diff];
+  var tA=targetTheta(),tT=targetSec();
+  var eA=Math.abs(norm180(G.danceAng-tA)), eT=Math.abs(G.holdT-tT);
+  var sA=clamp(1-eA/d.tolA,0,1), sT=clamp(1-eT/d.tolT,0,1);
+  G.res={eA:eA,eT:eT,sA:sA,sT:sT,tA:tA,tT:tT,acc:(sA*0.55+sT*0.45)};
+  /* 仲間を飛ばす */
+  var n=12,i;
+  G.followers=[];
+  var az=sunAz(G.time)+G.danceAng;
+  var dist=clamp((G.holdT-0.4)*1000,60,2600);
+  for(i=0;i<n;i++){
+    var ja=az+(Math.random()-0.5)*(9+eA*0.35);
+    var jd=dist*(1+(Math.random()-0.5)*0.14);
+    G.followers.push({x:0,y:0,tx:Math.sin(ja*D2R)*jd,ty:Math.cos(ja*D2R)*jd,t:-i*0.06,hit:false,done:false});
+  }
+  G.recruitT=0;
+  setPhase("recruit");
+}
+function updateRecruit(dt){
+  G.recruitT+=dt;
+  var fx=Math.sin(G.feeder.az*D2R)*G.feeder.dist, fy=Math.cos(G.feeder.az*D2R)*G.feeder.dist;
+  var all=true,i;
+  for(i=0;i<G.followers.length;i++){
+    var f=G.followers[i];
+    f.t+=dt*0.75;
+    if(f.t<0){all=false;continue;}
+    var u=clamp(f.t,0,1);
+    f.x=f.tx*u;f.y=f.ty*u;
+    if(u<1){all=false;}
+    else if(!f.done){
+      f.done=true;
+      if(Math.hypot(f.x-fx,f.y-fy)<catchRadius()){f.hit=true;G.hits++;G.honey+=10;updateHud();}
+    }
+  }
+  G.cam.x+=(fx*0.5-G.cam.x)*Math.min(1,dt*3);
+  G.cam.y+=(fy*0.5-G.cam.y)*Math.min(1,dt*3);
+  if(all&&G.recruitT>1.6){endRound(false);}
+}
+
+function endRound(exhausted){
+  var ov=$("ov"),box=$("ovBox");
+  var tA=targetTheta(), tT=targetSec();
+  var r=G.res||{eA:0,eT:0,acc:0};
+  var bonus=0;
+  if(!exhausted){
+    if(G.hits>=10){bonus=30;}else if(G.hits>=7){bonus=15;}
+    G.honey+=bonus;
+  }
+  var yourA=(G.danceAng>=0?"右 ":"左 ")+Math.abs(Math.round(G.danceAng))+"°";
+  var rightA=(tA>=0?"右 ":"左 ")+Math.abs(Math.round(tA))+"°";
+  var comment;
+  if(exhausted){comment="体力がつきて巣にもどった。クモの巣をさけ、まっすぐ最短で飛ぼう。";}
+  else if(r.eA>DIFF[G.diff].tolA*0.8){comment="角度が大きくずれた。θ = 花畑の方位 − 太陽の方位。プラスなら右、マイナスなら左だよ。";}
+  else if(r.eT>DIFF[G.diff].tolT*0.8){comment="長さがずれた。直進部の時間 = 0.4 + 距離 ÷ 1000(秒)。遠いほど長く走る。";}
+  else if(G.hits>=10){comment="みごと!角度も長さも正確で、ほとんどの仲間が花畑にたどりついた。";}
+  else{comment="おしい。もう少し角度か長さをそろえると、たどりつく仲間が増える。";}
+
+  ov.classList.remove("hide");
+  box.innerHTML='<h2>ラウンド '+G.round+' の結果</h2>'
+   +(exhausted?'<p style="color:#ffb3a7"><b>力つきて引き返した</b></p>':'')
+   +'<div class="lead">'
+   +'花畑:方位 <b class="num">'+G.feeder.az+'°('+azName(G.feeder.az)+')</b> / 距離 <b class="num">'+G.feeder.dist+' m</b><br>'
+   +'太陽:方位 <b class="num">'+Math.round(sunAz(G.time))+'°</b><br>'
+   +'正しい直進部の向き <b>'+rightA+'</b> ─ きみのダンス <b>'+(exhausted?"—":yourA)+'</b><br>'
+   +'正しい直進部の時間 <b class="num">'+tT.toFixed(1)+' 秒</b> ─ きみのダンス <b class="num">'+(exhausted?"—":G.holdT.toFixed(2)+" 秒")+'</b><br>'
+   +'花畑にたどりついた仲間 <b class="num">'+G.hits+' / 12</b>'+(bonus?'(ボーナス +'+bonus+')':'')
+   +'</div>'
+   +'<p>'+comment+'</p>';
+  setPhase("result");
+}
+function nextRound(){
+  G.round++;
+  G.time+=1.5;
+  if(G.round>G.maxRound||G.time>17.5){finish();return;}
+  newRound();setPhase("brief");showBrief();
+}
+function finish(){
+  var ov=$("ov"),box=$("ovBox");
+  var max=G.maxRound*150;
+  var rate=G.honey/max;
+  var rank= rate>0.8?"みつばち博士":rate>0.6?"ベテラン偵察バチ":rate>0.35?"見習い偵察バチ":"かけだしバチ";
+  ov.classList.remove("hide");
+  box.innerHTML='<h2>おつかれさま!</h2>'
+   +'<p>集めた蜜 <b class="num" style="font-size:1.4rem">'+G.honey+'</b> / 目標 '+max+'</p>'
+   +'<p>称号:<b>'+rank+'</b></p>'
+   +'<div class="lead">きみがやったこと:<br>'
+   +'① 太陽の方向を基準に、花畑までの角 θ を求めた<br>'
+   +'② 巣板の「真上=太陽」に置きかえて、直進部を θ だけ傾けた<br>'
+   +'③ 直進部の長さ(時間)で距離を伝えた<br>'
+   +'これが、ミツバチが生まれつきもっている<b>生得的行動</b>のしくみです。</div>';
+  setPhase("done");
+}
+
+/* ================= 画面下のボタン ================= */
+function mk(txt,cls,fn){
+  var b=document.createElement("button");b.className="btn "+(cls||"");b.textContent=txt;
+  b.addEventListener("click",fn);return b;
+}
+function updateCtrl(){
+  var c=$("ctrl"),h=$("hint");c.innerHTML="";
+  if(G.phase==="title"){
+    h.textContent="むずかしさをえらんで、スタートをおそう。";
+    c.appendChild(mk("スタート","primary",startGame));
+  }else if(G.phase==="brief"){
+    h.textContent="花畑まで飛ぼう。画面をタップした方向へ進む。";
+    c.appendChild(mk("飛び立つ","primary",function(){$("ov").classList.add("hide");setPhase("fly");}));
+  }else if(G.phase==="fly"){
+    h.textContent="画面をタップ(ドラッグ)した方向へ飛ぶ。クモの巣に注意!";
+  }else if(G.phase==="back"){
+    h.textContent="巣にもどっています…";
+  }else if(G.phase==="dance"){
+    var d=DIFF[G.diff];
+    h.innerHTML="直進部の向きを合わせて、<b>「おどる」を長おし</b>。はなすと直進部が終わります。";
+    c.appendChild(mk("◀ 45°","sub rot",function(){nudge(-45);}));
+    c.appendChild(mk("◀ 5°","sub rot",function(){nudge(-5);}));
+    var rd=document.createElement("div");rd.className="angleread num";rd.id="angRead";
+    rd.textContent=(G.danceAng>=0?"右 ":"左 ")+Math.abs(Math.round(G.danceAng))+"°";
+    c.appendChild(rd);
+    c.appendChild(mk("5° ▶","sub rot",function(){nudge(5);}));
+    c.appendChild(mk("45° ▶","sub rot",function(){nudge(45);}));
+    var hb=mk("おどる(長おし)","big",function(){});
+    hb.id="holdBtn";
+    hb.addEventListener("pointerdown",function(e){
+      e.preventDefault();
+      if(hb.setPointerCapture){try{hb.setPointerCapture(e.pointerId);}catch(err){}}
+      startHold();
+    });
+    hb.addEventListener("pointerup",function(e){e.preventDefault();endHold();});
+    hb.addEventListener("pointercancel",function(){endHold();});
+    if(G.holding){hb.classList.add("pressed");}
+    c.appendChild(hb);
+  }else if(G.phase==="recruit"){
+    h.textContent="仲間が飛び立った!花畑にたどりつくかな…";
+  }else if(G.phase==="result"){
+    h.textContent="結果を確認して、次へ進もう。";
+    c.appendChild(mk(G.round>=G.maxRound?"結果を見る":"つぎのラウンドへ","primary",nextRound));
+  }else if(G.phase==="done"){
+    h.textContent="もう一度あそべます。";
+    c.appendChild(mk("もう一度あそぶ","primary",function(){setPhase("title");}));
+  }
+}
+function updateHud(){
+  $("hRound").textContent=G.round+" / "+G.maxRound;
+  $("hTime").textContent=fmtTime(G.time);
+  $("hSun").textContent=Math.round(sunAz(G.time))+"° "+azName(sunAz(G.time));
+  $("hHp").textContent=Math.max(0,Math.round(G.hp));
+  $("hHoney").textContent=G.honey;
+}
+
+/* ================= 描画 ================= */
+function w2s(x,y){
+  return [LW/2+(x-G.cam.x)*SCALE, LH/2-(y-G.cam.y)*SCALE];
+}
+function beeShape(g,sc,dim){
+  g.save();g.scale(sc,sc);
+  g.fillStyle=dim?"rgba(255,255,255,.55)":"rgba(255,255,255,.75)";
+  g.strokeStyle=dim?"#5c554a":"#2b2418";g.lineWidth=1.2;
+  g.beginPath();g.ellipse(-2,-6,8,4,0,0,6.3);g.fill();g.stroke();
+  g.beginPath();g.ellipse(-2,6,8,4,0,0,6.3);g.fill();g.stroke();
+  g.fillStyle=dim?"#c9b98f":"#e0a93f";
+  g.beginPath();g.ellipse(-1,0,10,6,0,0,6.3);g.fill();g.lineWidth=1.6;g.stroke();
+  g.strokeStyle=dim?"#5c554a":"#2b2418";g.lineWidth=2.4;
+  [[-6,-5,-6,5],[-1,-5.6,-1,5.6],[4,-5,4,5]].forEach(function(a){
+    g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(a[2],a[3]);g.stroke();});
+  g.fillStyle=dim?"#5c554a":"#2b2418";
+  g.beginPath();g.arc(10.5,0,4.4,0,6.3);g.fill();
+  g.restore();
+}
+function drawSunBadge(){
+  var a=sunAz(G.time);
+  var cx=LW-64,cy=64;
+  ctx.save();
+  ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.arc(cx,cy,44,0,6.3);ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,.5)";ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle="#dfe7e2";ctx.font="700 11px sans-serif";ctx.textAlign="center";
+  ctx.fillText("北",cx,cy-30);
+  var dx=Math.sin(a*D2R)*30, dy=-Math.cos(a*D2R)*30;
+  ctx.strokeStyle="#ffcf5c";ctx.lineWidth=3.5;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+dx,cy+dy);ctx.stroke();
+  ctx.fillStyle="#ffe9b0";ctx.beginPath();ctx.arc(cx+dx,cy+dy,8,0,6.3);ctx.fill();
+  ctx.strokeStyle="#a8730f";ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle="#fff";ctx.font="700 11px sans-serif";
+  ctx.fillText("太陽",cx,cy+40);
+  ctx.restore();
+}
+function drawField(){
+  var g=ctx;
+  g.fillStyle="#20301f";g.fillRect(0,0,LW,LH);
+  /* 地面の格子 */
+  g.strokeStyle="rgba(255,255,255,.06)";g.lineWidth=1;
+  var step=200*SCALE,ox=(-G.cam.x*SCALE)%step,oy=(G.cam.y*SCALE)%step,i;
+  for(i=-1;i<LW/step+2;i++){g.beginPath();g.moveTo(LW/2+ox+i*step,0);g.lineTo(LW/2+ox+i*step,LH);g.stroke();}
+  for(i=-1;i<LH/step+2;i++){g.beginPath();g.moveTo(0,LH/2+oy+i*step);g.lineTo(LW,LH/2+oy+i*step);g.stroke();}
+
+  /* 風 */
+  G.winds.forEach(function(w){
+    var p=w2s(w.x,w.y),r=w.r*SCALE;
+    if(p[0]<-r||p[0]>LW+r||p[1]<-r||p[1]>LH+r){return;}
+    g.save();g.translate(p[0],p[1]);
+    g.strokeStyle="rgba(140,200,235,.55)";g.lineWidth=2;g.setLineDash([7,6]);
+    g.beginPath();g.arc(0,0,r,0,6.3);g.stroke();g.setLineDash([]);
+    g.rotate(Math.atan2(Math.cos(w.a*D2R)*-1,Math.sin(w.a*D2R)));
+    g.strokeStyle="rgba(170,220,245,.8)";g.lineWidth=3;
+    for(var k=-1;k<=1;k++){
+      g.beginPath();g.moveTo(-r*0.5,k*14);g.lineTo(r*0.45,k*14);
+      g.moveTo(r*0.45,k*14);g.lineTo(r*0.28,k*14-7);
+      g.moveTo(r*0.45,k*14);g.lineTo(r*0.28,k*14+7);g.stroke();
+    }
+    g.restore();
+    g.fillStyle="rgba(200,230,245,.9)";g.font="700 12px sans-serif";g.textAlign="center";
+    g.fillText("風",p[0],p[1]-r-6);
+  });
+
+  /* クモの巣 */
+  G.webs.forEach(function(w){
+    var p=w2s(w.x,w.y),r=w.r*SCALE;
+    if(p[0]<-r-30||p[0]>LW+r+30||p[1]<-r-30||p[1]>LH+r+30){return;}
+    g.save();g.translate(p[0],p[1]);
+    g.strokeStyle=w.hit?"rgba(255,255,255,.22)":"rgba(255,255,255,.72)";g.lineWidth=1.6;
+    for(var k=0;k<8;k++){
+      g.beginPath();g.moveTo(0,0);
+      g.lineTo(Math.cos(k*45*D2R)*r,Math.sin(k*45*D2R)*r);g.stroke();
+    }
+    for(var q=1;q<=3;q++){
+      g.beginPath();
+      for(var k2=0;k2<=8;k2++){
+        var a=k2*45*D2R,rr=r*q/3;
+        if(k2===0){g.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);}else{g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}
+      }
+      g.stroke();
+    }
+    g.restore();
+    if(!w.hit){
+      g.fillStyle="rgba(255,255,255,.85)";g.font="700 12px sans-serif";g.textAlign="center";
+      g.fillText("クモの巣",p[0],p[1]+r+16);
+    }
+  });
+
+  /* 巣 */
+  var hp=w2s(0,0);
+  g.save();g.translate(hp[0],hp[1]);
+  g.fillStyle="#e2cf9f";g.strokeStyle="#1b2420";g.lineWidth=3;
+  g.beginPath();g.rect(-24,-18,48,36);g.fill();g.stroke();
+  g.fillStyle="#c9b78e";g.fillRect(-24,-18,48,10);g.strokeRect(-24,-18,48,10);
+  g.fillStyle="#1b2420";g.fillRect(-11,10,22,8);
+  g.restore();
+  g.fillStyle="#dfe7e2";g.font="700 13px sans-serif";g.textAlign="center";
+  g.fillText("巣",hp[0],hp[1]+34);
+
+  /* 花畑 */
+  var fx=Math.sin(G.feeder.az*D2R)*G.feeder.dist, fy=Math.cos(G.feeder.az*D2R)*G.feeder.dist;
+  var fp=w2s(fx,fy),fr=PATCH*SCALE;
+  g.save();g.translate(fp[0],fp[1]);
+  g.strokeStyle="rgba(255,190,120,.65)";g.lineWidth=2.5;g.setLineDash([9,7]);
+  g.beginPath();g.arc(0,0,fr,0,6.3);g.stroke();g.setLineDash([]);
+  for(var f=0;f<7;f++){
+    var fa=f*51*D2R,rr=fr*0.55*(0.4+((f*37)%10)/10);
+    drawFlower(g,Math.cos(fa)*rr,Math.sin(fa)*rr,9);
+  }
+  g.restore();
+  g.fillStyle="#ffd9a8";g.font="700 13px sans-serif";g.textAlign="center";
+  g.fillText("花畑",fp[0],fp[1]+fr+18);
+
+  /* 画面外の花畑への矢印 */
+  if(fp[0]<20||fp[0]>LW-20||fp[1]<20||fp[1]>LH-20){
+    var ang=Math.atan2(fp[1]-LH/2,fp[0]-LW/2);
+    var ex=LW/2+Math.cos(ang)*(LW/2-46), ey=LH/2+Math.sin(ang)*(LH/2-46);
+    g.save();g.translate(ex,ey);g.rotate(ang);
+    g.fillStyle="#ffcf8a";g.beginPath();g.moveTo(16,0);g.lineTo(-10,-10);g.lineTo(-10,10);g.closePath();g.fill();
+    g.restore();
+  }
+}
+function drawFlower(g,x,y,r){
+  g.save();g.translate(x,y);
+  g.fillStyle="#f4d9c6";g.strokeStyle="#8f3b2e";g.lineWidth=1.4;
+  for(var i=0;i<6;i++){
+    var a=i*60*D2R;
+    g.beginPath();g.arc(Math.cos(a)*r*0.62,Math.sin(a)*r*0.62,r*0.42,0,6.3);g.fill();g.stroke();
+  }
+  g.fillStyle="#e2a53c";g.beginPath();g.arc(0,0,r*0.4,0,6.3);g.fill();g.stroke();
+  g.restore();
+}
+
+function drawFly(){
+  ctx.save();
+  if(G.shake>0){ctx.translate((Math.random()-0.5)*8,(Math.random()-0.5)*8);}
+  drawField();
+  var b=G.bee,p=w2s(b.x,b.y);
+  ctx.save();ctx.translate(p[0],p[1]);ctx.rotate(-b.ang);
+  if(b.hitT>0&&Math.floor(b.hitT*12)%2===0){ctx.globalAlpha=0.45;}
+  beeShape(ctx,1.25,false);ctx.restore();
+  ctx.restore();
+  drawSunBadge();
+  /* 体力バー */
+  ctx.fillStyle="rgba(0,0,0,.45)";ctx.fillRect(16,16,240,26);
+  ctx.fillStyle=G.hp>35?"#7fd6a5":"#ff9b8a";
+  ctx.fillRect(19,19,clamp(G.hp/G.hpMax,0,1)*234,20);
+  ctx.strokeStyle="rgba(255,255,255,.7)";ctx.lineWidth=1.5;ctx.strokeRect(16,16,240,26);
+  ctx.fillStyle="#fff";ctx.font="700 13px sans-serif";ctx.textAlign="left";
+  ctx.fillText("体力",26,34);
+  /* 距離表示 */
+  var d=Math.hypot(b.x,b.y);
+  ctx.textAlign="left";ctx.fillStyle="#dfe7e2";ctx.font="700 13px sans-serif";
+  ctx.fillText("巣からの距離 "+Math.round(d)+" m",16,62);
+  if(G.flash>0){ctx.fillStyle="rgba(255,90,70,"+(G.flash*0.8)+")";ctx.fillRect(0,0,LW,LH);}
+}
+
+function drawBack(){
+  drawField();
+  var u=clamp(G.backT/1.2,0,1);
+  var fx=Math.sin(G.feeder.az*D2R)*G.feeder.dist, fy=Math.cos(G.feeder.az*D2R)*G.feeder.dist;
+  var bx=fx*(1-u),by=fy*(1-u);
+  G.cam.x+=(bx-G.cam.x)*0.2;G.cam.y+=(by-G.cam.y)*0.2;
+  var p=w2s(bx,by);
+  ctx.save();ctx.translate(p[0],p[1]);ctx.rotate(-Math.atan2(-fy,-fx));
+  beeShape(ctx,1.25,false);ctx.restore();
+  ctx.fillStyle="rgba(0,0,0,.5)";ctx.fillRect(0,LH/2-40,LW,80);
+  ctx.fillStyle="#fff";ctx.font="700 24px sans-serif";ctx.textAlign="center";
+  ctx.fillText("蜜を見つけた! 巣へもどる…",LW/2,LH/2+8);
+}
+
+var combPat=null;
+function makeComb(){
+  var c=document.createElement("canvas");
+  var r=17,dx=Math.sqrt(3)*r,dy=1.5*r;
+  c.width=dx*2;c.height=dy*2;
+  var g=c.getContext("2d");
+  g.fillStyle="#3a3222";g.fillRect(0,0,c.width,c.height);
+  g.strokeStyle="#5d5236";g.lineWidth=1.6;
+  [[dx*0.5,dy*0.5],[dx*1.5,dy*0.5],[dx*1.0,dy*1.5],[0,dy*1.5],[dx*2,dy*1.5]].forEach(function(o){
+    g.beginPath();
+    for(var i=0;i<6;i++){
+      var a=(60*i+90)*D2R,x=o[0]+Math.cos(a)*r,y=o[1]-Math.sin(a)*r;
+      if(i===0){g.moveTo(x,y);}else{g.lineTo(x,y);}
+    }
+    g.closePath();g.stroke();
+  });
+  combPat=ctx.createPattern(c,"repeat");
+}
+function drawDance(){
+  if(!combPat){makeComb();}
+  var g=ctx,cx=LW/2,cy=LH/2+10;
+  g.fillStyle=combPat;g.fillRect(0,0,LW,LH);
+  g.fillStyle="rgba(10,14,10,.45)";g.fillRect(0,0,LW,LH);
+
+  /* 真上=太陽 */
+  g.strokeStyle="#ffcf5c";g.lineWidth=4;g.setLineDash([13,9]);
+  g.beginPath();g.moveTo(cx,cy);g.lineTo(cx,cy-190);g.stroke();g.setLineDash([]);
+  g.save();g.translate(cx,cy-208);
+  g.fillStyle="#ffe9b0";g.strokeStyle="#a8730f";g.lineWidth=3;
+  g.beginPath();g.arc(0,0,15,0,6.3);g.fill();g.stroke();
+  for(var i=0;i<8;i++){var a=i*45*D2R;
+    g.beginPath();g.moveTo(Math.cos(a)*18,Math.sin(a)*18);g.lineTo(Math.cos(a)*26,Math.sin(a)*26);
+    g.lineWidth=3;g.strokeStyle="#ffcf5c";g.stroke();}
+  g.restore();
+  g.fillStyle="#ffdf9a";g.font="700 14px sans-serif";g.textAlign="center";
+  g.fillText("真上 = 太陽の方向",cx,cy-238);
+
+  /* 重力 */
+  g.strokeStyle="rgba(220,230,225,.7)";g.lineWidth=3;
+  g.beginPath();g.moveTo(LW-48,52);g.lineTo(LW-48,104);g.stroke();
+  g.beginPath();g.moveTo(LW-48,110);g.lineTo(LW-55,98);g.lineTo(LW-41,98);g.closePath();
+  g.fillStyle="rgba(220,230,225,.7)";g.fill();
+  g.fillStyle="rgba(220,230,225,.85)";g.font="700 12px sans-serif";g.fillText("重力",LW-48,44);
+
+  var th=G.danceAng,L=110+ (G.holding? Math.min(G.holdT,4)*26 : (G.holdDone? Math.min(G.holdT,4)*26 : 0));
+  L=clamp(L,90,240);
+  /* ループ */
+  g.save();g.translate(cx,cy);g.rotate(th*D2R);
+  var r=L/2;
+  g.strokeStyle="rgba(150,220,190,.75)";g.lineWidth=3;g.setLineDash([9,7]);
+  g.beginPath();g.arc(0,0,r,-Math.PI/2,Math.PI/2,false);g.stroke();
+  g.beginPath();g.arc(0,0,r,Math.PI/2,-Math.PI/2,false);g.stroke();
+  g.setLineDash([]);
+  /* 直進部 */
+  g.strokeStyle=G.holding?"#ffd166":"#f2f7f4";g.lineWidth=8;g.lineCap="round";
+  g.beginPath();g.moveTo(0,r);g.lineTo(0,-r);g.stroke();
+  g.beginPath();g.moveTo(0,-r-2);g.lineTo(-11,-r+14);g.lineTo(11,-r+14);g.closePath();
+  g.fillStyle=G.holding?"#ffd166":"#f2f7f4";g.fill();
+  /* ハチ */
+  var bx=0,by=r,ang=-90;
+  if(G.holding||G.holdDone){
+    var u=clamp(G.holdT/Math.max(0.2,G.holdT),0,1);
+    var wob=Math.sin(G.holdT*Math.PI*2*7)*7;
+    by=r-2*r*clamp(G.holdT/2.6,0,1);bx=wob;ang=-90+Math.sin(G.holdT*Math.PI*2*7)*24;
+  }
+  g.save();g.translate(bx,by);g.rotate((ang+90)*D2R);
+  beeShape(g,1.3,false);g.restore();
+  g.restore();
+
+  /* 角度アーク */
+  g.save();g.translate(cx,cy);
+  g.strokeStyle="#ff9d86";g.lineWidth=4;
+  g.beginPath();
+  var a0=-Math.PI/2,a1=-Math.PI/2+th*D2R;
+  g.arc(0,0,72,Math.min(a0,a1),Math.max(a0,a1),false);g.stroke();
+  g.restore();
+  var mid=(th/2)*D2R;
+  g.fillStyle="#ffb7a4";g.font="700 20px ui-monospace,monospace";g.textAlign="center";
+  g.fillText((th>=0?"右 ":"左 ")+Math.abs(Math.round(th))+"°",
+    cx+Math.sin(mid)*112, cy-Math.cos(mid)*112+7);
+
+  /* 時間ゲージ */
+  var gx=60,gy=LH-58,gw=LW-120,gh=26;
+  g.fillStyle="rgba(0,0,0,.5)";g.fillRect(gx,gy,gw,gh);
+  g.strokeStyle="rgba(255,255,255,.6)";g.lineWidth=1.5;g.strokeRect(gx,gy,gw,gh);
+  var maxS=4;
+  g.fillStyle="#ffd166";
+  g.fillRect(gx+2,gy+2,clamp(G.holdT/maxS,0,1)*(gw-4),gh-4);
+  g.strokeStyle="rgba(255,255,255,.55)";g.lineWidth=1.2;
+  g.fillStyle="#dfe7e2";g.font="700 11px ui-monospace,monospace";g.textAlign="center";
+  for(var s=0;s<=maxS;s++){
+    var xx=gx+gw*s/maxS;
+    g.beginPath();g.moveTo(xx,gy);g.lineTo(xx,gy+gh);g.stroke();
+    g.fillText(s+"秒",xx,gy-6);
+  }
+  if(DIFF[G.diff].hint){
+    var tx=gx+gw*clamp(targetSec()/maxS,0,1);
+    g.strokeStyle="#8ef0c0";g.lineWidth=3;
+    g.beginPath();g.moveTo(tx,gy-4);g.lineTo(tx,gy+gh+4);g.stroke();
+    g.fillStyle="#8ef0c0";g.fillText("ここ",tx,gy+gh+18);
+  }
+  g.textAlign="right";g.fillStyle="#fff";g.font="700 18px ui-monospace,monospace";
+  g.fillText(G.holdT.toFixed(2)+" 秒",gx+gw,gy-8);
+
+  /* メモパネル */
+  var d=DIFF[G.diff];
+  g.fillStyle="rgba(0,0,0,.55)";g.fillRect(16,16,268,d.hint?128:104);
+  g.strokeStyle="rgba(255,255,255,.45)";g.lineWidth=1.5;g.strokeRect(16,16,268,d.hint?128:104);
+  g.textAlign="left";g.font="700 13px sans-serif";g.fillStyle="#dfe7e2";
+  g.fillText("記録メモ",28,38);
+  g.font="13px ui-monospace,monospace";
+  g.fillText("太陽の方位  "+Math.round(sunAz(G.time))+"°",28,60);
+  g.fillText("花畑の方位  "+(d.mem?G.feeder.az+"°":"?(思い出そう)"),28,80);
+  g.fillText("花畑の距離  "+(d.mem?G.feeder.dist+" m":"?"),28,100);
+  if(d.hint){
+    g.fillStyle="#8ef0c0";
+    var tA=targetTheta();
+    g.fillText("答え θ="+(tA>=0?"右":"左")+Math.abs(Math.round(tA))+"°  "+targetSec().toFixed(1)+"秒",28,122);
+  }
+
+  /* 残り時間 */
+  if(!G.holding&&!G.holdDone){
+    g.textAlign="center";g.fillStyle=G.danceLeft<5?"#ff9b8a":"#dfe7e2";
+    g.font="700 16px sans-serif";
+    g.fillText("のこり "+G.danceLeft.toFixed(1)+" 秒",LW/2,36);
+  }else if(G.holding){
+    g.textAlign="center";g.fillStyle="#ffd166";g.font="700 18px sans-serif";
+    g.fillText("尻ふり走り中!ちょうどよい長さではなそう",LW/2,36);
+  }
+}
+
+function drawRecruit(){
+  /* 全体が見えるよう縮小 */
+  var fx=Math.sin(G.feeder.az*D2R)*G.feeder.dist, fy=Math.cos(G.feeder.az*D2R)*G.feeder.dist;
+  var save=SCALE;
+  var need=Math.max(Math.abs(fx),Math.abs(fy),600)*2.4;
+  SCALE=clamp(Math.min(LW/need,LH/need),0.08,0.5);
+  drawField();
+  var g=ctx;
+  /* きみが伝えた方向 */
+  var az=sunAz(G.time)+G.danceAng;
+  var dist=clamp((G.holdT-0.4)*1000,60,2600);
+  var tp=w2s(Math.sin(az*D2R)*dist,Math.cos(az*D2R)*dist);
+  var hp=w2s(0,0);
+  var cr=catchRadius()*SCALE, cp=w2s(fx,fy);
+  g.strokeStyle="rgba(150,220,190,.5)";g.lineWidth=2;g.setLineDash([5,7]);
+  g.beginPath();g.arc(cp[0],cp[1],cr,0,6.3);g.stroke();g.setLineDash([]);
+  g.fillStyle="rgba(150,220,190,.9)";g.font="700 12px sans-serif";g.textAlign="center";
+  g.fillText("この中に入れば花畑にたどりつける",cp[0],cp[1]-cr-8);
+  g.strokeStyle="rgba(255,209,102,.75)";g.lineWidth=3;g.setLineDash([10,8]);
+  g.beginPath();g.moveTo(hp[0],hp[1]);g.lineTo(tp[0],tp[1]);g.stroke();g.setLineDash([]);
+  g.fillStyle="#ffd166";g.font="700 13px sans-serif";g.textAlign="center";
+  g.fillText("きみが伝えた方向・距離",tp[0],tp[1]-14);
+
+  G.followers.forEach(function(f){
+    if(f.t<0){return;}
+    var p=w2s(f.x,f.y);
+    g.save();g.translate(p[0],p[1]);
+    g.rotate(-Math.atan2(f.ty,f.tx));
+    beeShape(g,0.8,!f.hit&&f.done);
+    g.restore();
+    if(f.done){
+      g.fillStyle=f.hit?"#8ef0c0":"#ff9b8a";
+      g.font="700 15px sans-serif";g.textAlign="center";
+      g.fillText(f.hit?"○":"×",p[0],p[1]-16);
+    }
+  });
+  SCALE=save;
+  drawSunBadge();
+  g.fillStyle="rgba(0,0,0,.5)";g.fillRect(16,16,250,34);
+  g.strokeStyle="rgba(255,255,255,.5)";g.lineWidth=1.5;g.strokeRect(16,16,250,34);
+  g.fillStyle="#fff";g.font="700 16px sans-serif";g.textAlign="left";
+  g.fillText("花畑にとどいた仲間 "+G.hits+" / 12",28,39);
+}
+
+function draw(){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,cv.width,cv.height);      /* 実解像度で全面を消す */
+  ctx.fillStyle="#0f1512";ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.setTransform(VS,0,0,VS,0,0);            /* 論理座標(900x600)に戻す */
+  if(G.phase==="fly"){drawFly();}
+  else if(G.phase==="back"){drawBack();}
+  else if(G.phase==="dance"||(G.phase==="result"&&G.reachedDance)){drawDance();}
+  else if(G.phase==="result"){drawField();}
+  else if(G.phase==="recruit"){drawRecruit();}
+  else{
+    /* タイトル背景 */
+    ctx.fillStyle="#20301f";ctx.fillRect(0,0,LW,LH);
+    ctx.save();ctx.translate(LW/2,LH/2+40);
+    for(var i=0;i<3;i++){
+      ctx.save();ctx.translate(Math.cos(i*2.1)*150,Math.sin(i*2.1)*70);ctx.rotate(i*0.8);
+      beeShape(ctx,1.6,false);ctx.restore();
+    }
+    ctx.restore();
+  }
+}
+
+/* ================= 起動 ================= */
+function fit(){
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+  var w=cv.clientWidth||LW;
+  cv.width=Math.max(1,Math.round(w*dpr));
+  cv.height=Math.max(1,Math.round(w*dpr*LH/LW));
+  VS=cv.width/LW;
+  ctx.setTransform(VS,0,0,VS,0,0);
+  combPat=null;
+}
+window.addEventListener("resize",fit);
+fit();
+newRound();
+setPhase("title");
+updateHud();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
