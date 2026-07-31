@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ショウジョウバエの発生|母性因子と分節遺伝子(高校生物)</title>
+<style>
+:root{
+  --paper:#eceff2;
+  --card:#ffffff;
+  --ink:#1b2430;
+  --sub:#57626e;
+  --line:#c4ccd4;
+  --line2:#dee4ea;
+  --ant:#27508f;      /* 前方・ビコイド */
+  --post:#a8452f;     /* 後方・ナノス */
+  --gap:#2c6b52;      /* ギャップ遺伝子 */
+  --pair:#6b4a86;     /* ペアルール遺伝子 */
+  --seg:#8a6a12;      /* セグメントポラリティ */
+  --mark:#ffeeb5;
+  --ok:#15654a;
+  --ng:#8f3b2e;
+  --focus:#0b63c5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px;line-height:1.8;-webkit-text-size-adjust:100%;
+}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1120px;margin:0 auto;padding:12px 12px 44px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card h2{font-size:1.02rem;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .no{font-size:.72rem;letter-spacing:.14em;background:var(--ink);color:#fff;padding:1px 9px;border-radius:999px}
+.card h3{font-size:.95rem;margin:16px 0 4px}
+.note{font-size:.85rem;color:var(--sub)}
+header.head{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin-bottom:10px}
+header.head .eyebrow{font-size:.75rem;letter-spacing:.18em;color:var(--sub);margin:0}
+header.head h1{font-size:1.26rem;margin:2px 0 2px;letter-spacing:.02em}
+header.head p{margin:0;font-size:.88rem;color:var(--sub)}
+
+nav.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+nav.tabs button{flex:1 1 190px;min-height:56px;padding:8px 10px;font-size:.98rem;font-weight:700;
+  font-family:inherit;background:var(--card);color:var(--sub);border:1px solid var(--line);
+  border-radius:10px;cursor:pointer;line-height:1.35}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.panel{display:none}
+.panel.on{display:block}
+
+.btn{min-height:54px;padding:9px 18px;font-size:1rem;font-weight:700;font-family:inherit;
+  background:var(--ink);color:#fff;border:none;border-radius:10px;cursor:pointer}
+.btn.sub{background:#f2f5f8;color:var(--ink);border:2px solid var(--line)}
+.btn.small{min-height:48px;padding:6px 14px;font-size:.93rem}
+.btn.fire{min-height:86px;flex:1 1 320px;font-size:1.35rem;letter-spacing:.12em;background:var(--gap)}
+.btn.fire:active{background:var(--seg)}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* ステージ操作 */
+.stagebar{display:flex;flex-wrap:wrap;gap:6px}
+.stagebar button{flex:1 1 130px;min-height:60px;padding:6px 8px;font-size:.86rem;font-weight:700;
+  font-family:inherit;background:#f2f5f8;color:var(--sub);border:2px solid var(--line);
+  border-radius:10px;cursor:pointer;line-height:1.35;text-align:left}
+.stagebar button b{display:block;font-size:.95rem;color:var(--ink)}
+.stagebar button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stagebar button[aria-pressed="true"] b{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{min-height:48px;padding:6px 14px;font-size:.93rem;font-weight:700;font-family:inherit;
+  background:#f2f5f8;border:2px solid var(--line);border-radius:9px;cursor:pointer;color:var(--ink)}
+.chips button[aria-pressed="true"]{background:var(--gap);color:#fff;border-color:var(--gap)}
+
+svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.split{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.part{cursor:pointer}
+.part:hover .hit{opacity:.72}
+.part:focus{outline:none}
+.part.sel .ol{stroke:var(--ink);stroke-width:3.4;stroke-dasharray:8 5}
+.part:focus-visible .ol{stroke:var(--focus);stroke-width:3.4}
+.ol{fill:none;stroke:transparent}
+.badge{display:none}
+body.test .badge{display:block}
+body.test .hideT{display:none}
+
+#infoTitle{font-size:1.05rem;font-weight:700;margin:0 0 6px}
+#infoBody{margin:0;font-size:.96rem}
+.tip{background:var(--mark);border:1px solid #ddc46a;border-radius:8px;padding:8px 12px;margin-top:10px;font-size:.92rem}
+.qopts{display:grid;gap:8px;margin-top:10px}
+.qopts button{min-height:56px;padding:8px 14px;text-align:left;font-size:.95rem;font-family:inherit;
+  background:var(--card);border:2px solid var(--line);border-radius:10px;cursor:pointer;color:var(--ink)}
+.qopts button:hover{border-color:var(--ink)}
+.qopts button.correct{border-color:var(--ok);background:#e9f4ef;font-weight:700}
+.qopts button.wrong{border-color:var(--ng);background:#f8eeec}
+.judge{font-weight:700;margin:8px 0 0}
+.judge.o{color:var(--ok)}
+.judge.x{color:var(--ng)}
+.score{font-weight:700;font-size:.95rem}
+
+/* ゲーム */
+.hud{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hud .cell{flex:1 1 100px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 10px;min-width:0}
+.hud .cell b{display:block;font-size:.72rem;color:var(--sub);font-weight:700;letter-spacing:.06em}
+.hud .cell span{font-size:1.02rem;font-weight:700;white-space:nowrap}
+.stage{position:relative;background:#101820;border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(16,24,32,.86);color:#fff;text-align:center}
+.overlay.hide{display:none}
+.overlay .box{max-width:560px}
+.overlay h3{margin:0 0 8px;font-size:1.15rem}
+.overlay p{margin:0 0 10px;font-size:.94rem;line-height:1.75}
+.overlay .lead{background:rgba(255,255,255,.12);border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:.9rem;text-align:left}
+.overlay .lead b{color:#ffe08a}
+.pad{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.pad .hint{font-size:.9rem;color:var(--sub);margin:0 0 6px}
+.rowc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.diffrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.diffrow button{min-height:56px;flex:1 1 140px;padding:6px 10px;font-size:.94rem;font-weight:700;font-family:inherit;
+  background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:10px;cursor:pointer}
+.diffrow button[aria-pressed="true"]{background:#fff;color:var(--ink);border-color:#fff}
+
+table.t{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:6px}
+table.t th,table.t td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+table.t th{background:#f2f5f8;white-space:nowrap}
+ul.li{font-size:.95rem;padding-left:1.25em;margin:6px 0}
+ol.li{font-size:.95rem;padding-left:1.35em;margin:6px 0}
+.danger{background:#fdeeea;border:2px solid #d99a8c;border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.danger h3{margin:0 0 6px;font-size:1rem;color:var(--ng)}
+.danger ul{margin:0;padding-left:1.2em;font-size:.94rem}
+details.safety{margin-top:10px;background:#fff8e6;border:1px solid #d9bd77;border-radius:10px;padding:8px 14px}
+details.safety summary{font-weight:700;cursor:pointer;min-height:46px;display:flex;align-items:center}
+details.safety ul{margin:6px 0 0;padding-left:1.2em;font-size:.92rem}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.86rem;margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="head">
+  <p class="eyebrow">高等学校 生物 ─ 遺伝子の発現調節と発生</p>
+  <h1>ショウジョウバエの発生 ─ 母性因子と分節遺伝子</h1>
+  <p>1つの卵から、前後の向きと体節がどうやって決まるのかを、図とゲームで確かめよう。</p>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="fig" aria-selected="true">1. 図解でしくみを見る</button>
+  <button role="tab" data-tab="game" aria-selected="false">2. ゲーム「体節をつくれ!」</button>
+  <button role="tab" data-tab="obs" aria-selected="false">3. 観察・実験と安全</button>
+</nav>
+
+<!-- ================= タブ1 図解 ================= -->
+<section class="panel on" id="panel-fig">
+
+  <div class="card">
+    <h2><span class="no">そうさ</span>発生の段階を進めよう</h2>
+    <div class="stagebar" id="stagebar"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn sub small" id="prevS">◀ 前の段階</button>
+      <button class="btn sub small" id="nextS">次の段階 ▶</button>
+      <div class="chips" style="margin-left:auto">
+        <button id="mLearn" aria-pressed="true">名前を表示</button>
+        <button id="mTest" aria-pressed="false">名前かくしテスト</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="card">
+      <h2><span class="no">ずかい</span><span id="figTitle"></span></h2>
+      <svg id="fig" viewBox="0 0 900 640" role="img" aria-label="ショウジョウバエの卵の前後軸と、母性因子・分節遺伝子のはたらきを示した図"></svg>
+      <p class="note" id="figCap" style="margin:8px 0 0"></p>
+      <div class="legend">
+        <span>● 前方(頭になる側)を決めるもの</span>
+        <span>■ 後方(尾になる側)を決めるもの</span>
+        <span>▲ 分節遺伝子</span>
+        <span>◆ ホメオティック遺伝子</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="no">せつめい</span><span id="infoHead">図の番号をタップしよう</span></h2>
+      <div id="learnPane">
+        <p id="infoTitle">まだ何も選ばれていません</p>
+        <p id="infoBody">図の中の番号がついた部分をタップ(クリック)すると、名前とはたらきが表示されます。段階を進めると、はたらく遺伝子が順に増えていきます。</p>
+        <div class="tip" id="infoTip" style="display:none"></div>
+      </div>
+      <div id="testPane" style="display:none">
+        <p class="score" id="scoreLine"></p>
+        <p id="qPrompt">図の番号をタップして、その名前を答えよう。</p>
+        <div class="qopts" id="qOpts"></div>
+        <p class="judge" id="judge"></p>
+        <p id="qDesc" style="font-size:.92rem"></p>
+        <p class="note" id="remain" style="margin:8px 0 0"></p>
+        <button class="btn sub small" id="resetQuiz" style="margin-top:8px">せいせきをリセット</button>
+      </div>
+
+      <h3>まとめ:遺伝子がはたらく順番</h3>
+      <table class="t">
+        <tr><th>① 母性因子</th><td>母親が卵に入れておいた mRNA・タンパク質。前後の軸を決める</td></tr>
+        <tr><th>② ギャップ遺伝子</th><td>卵を数体節分のおおまかな領域に区切る</td></tr>
+        <tr><th>③ ペアルール遺伝子</th><td>1つおきの縞に発現し、体節のくり返しをつくる</td></tr>
+        <tr><th>④ セグメントポラリティ遺伝子</th><td>各体節の中の前後の区別をつける</td></tr>
+        <tr><th>⑤ ホメオティック遺伝子</th><td>それぞれの体節が何になるか(性質)を決める</td></tr>
+      </table>
+      <p class="note">②〜④をまとめて<b>分節遺伝子</b>といいます。上位の遺伝子の産物が下位の遺伝子の発現を調節する、という段階的なしくみになっています。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= タブ2 ゲーム ================= -->
+<section class="panel" id="panel-game">
+  <div class="hud">
+    <div class="cell"><b>ステージ</b><span id="gStage">1 / 5</span></div>
+    <div class="cell"><b>お題</b><span class="num" id="gTask">— / —</span></div>
+    <div class="cell"><b>正常発生度</b><span class="num" id="gHp">100</span></div>
+    <div class="cell"><b>連続成功</b><span class="num" id="gCombo">0</span></div>
+    <div class="cell"><b>スコア</b><span class="num" id="gScore">0</span></div>
+  </div>
+
+  <div class="stage">
+    <canvas id="cv" width="900" height="560"></canvas>
+    <div class="overlay" id="ov"><div class="box" id="ovBox"></div></div>
+  </div>
+
+  <div class="pad">
+    <p class="hint" id="gHint"></p>
+    <div class="rowc" id="gCtrl"></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2><span class="no">あそびかた</span>走査線が正しい場所に来たら発現させる</h2>
+    <ul class="li">
+      <li>卵の上を<b>走査線</b>が左右に往復します。お題の遺伝子が<b>はたらくべき場所</b>に線が来たしゅんかんに「発現!」を押します。</li>
+      <li>中心に近いほど<b>パーフェクト</b>。ずれるとその場所に変異が起こり、上の幼虫プレビューに残ります。</li>
+      <li><b>変異は消えません。</b>前のステージでの失敗は、そのままできあがる幼虫の形に残ります。上位の遺伝子のまちがいが下位に影響する、というしくみをそのまま体験できます。</li>
+      <li>ステージ3・4では、<b>一度使った場所は使えません</b>。残りが減るほど、ねらえる場所が少なくなって難しくなります。</li>
+    </ul>
+    <table class="t">
+      <tr><th>ステージ1 母性因子</th><td>ビコイドは前端、ナノスは後端。前後の軸を決める</td></tr>
+      <tr><th>ステージ2 ギャップ遺伝子</th><td>ハンチバック=前部、クリュッペル=中央部、ナノース=後部</td></tr>
+      <tr><th>ステージ3 ペアルール遺伝子</th><td>イーブンスキップドは奇数の縞、フシタラズは偶数の縞。<b>1つおき</b>がかぎ</td></tr>
+      <tr><th>ステージ4 セグメントポラリティ遺伝子</th><td>エングレイルドは各体節の<b>後半</b>、ウイングレスは<b>前半</b></td></tr>
+      <tr><th>ステージ5 ホメオティック遺伝子</th><td>触角は頭部、肢・翅・平均棍は胸部。まちがえると有名な変異が起こる</td></tr>
+    </table>
+    <p class="note">走査線の速さや帯の幅は、操作しやすさのために調整した模式的なものです。実際の発現領域の広さや時間の進み方を表しているわけではありません。</p>
+  </div>
+</section>
+
+<!-- ================= タブ3 観察・実験 ================= -->
+<section class="panel" id="panel-obs">
+
+  <div class="danger">
+    <h3>⚠ ショウジョウバエを扱う実験の前に、必ず全員で読むこと</h3>
+    <ul>
+      <li><b>麻酔にジエチルエーテルを使う場合は特に注意。</b>引火性が非常に高く、蒸気は空気より重くて床を伝って広がります。<b>火気・電熱器・スパークの出る器具は同じ部屋で使わない。</b>必ず換気し、教員の管理のもとで少量だけ扱う。蒸気を吸い込まない。近年は<b>二酸化炭素麻酔や氷冷(低温麻酔)</b>のほうが安全なため、可能ならそちらを使う。</li>
+      <li><b>二酸化炭素を使う場合</b>:高濃度では酸欠・窒息の危険があります。必ず換気し、ボンベは転倒防止の固定をする。顔を近づけて吸い込まない。</li>
+      <li><b>培地</b>にカビ防止剤(プロピオン酸など)が入っている場合、皮膚や目を刺激します。手袋を使い、目に入ったらすぐ流水で15分以上洗って教員に知らせる。培地は口に入れない。</li>
+      <li><b>実体顕微鏡</b>の光源は熱を持つことがあります。長時間つけっぱなしにしない。電源コードを足で引っかけない。</li>
+      <li><b>ハエを教室の外へ逃がさない。</b>実験に使った系統は野外に放さないこと。処分するときは、教員の指示に従って冷凍するなどしてから所定の方法で廃棄する。</li>
+      <li>遺伝子組換え系統は、高校の授業では原則として扱いません(法令で決められた設備・手続きが必要です)。</li>
+      <li>酵母の粉や培地の粉じんでアレルギー症状が出る人がいます。心配な人は事前に教員へ申し出る。作業後は必ず手を洗う。</li>
+      <li>生き物を扱う実験です。必要以上に数を増やさず、ていねいに扱いましょう。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="no">事前指導</span>この単元で、実際に何を観察するか</h2>
+    <p style="margin:0 0 8px;font-size:.95rem">胚の中で分節遺伝子が縞状に発現するようすを高校の設備で直接見るのは難しいため、多くの場合は次のような観察を行い、分子のしくみはこの教材や資料で補います。</p>
+    <table class="t">
+      <tr><th>観察の例</th><th>やること</th><th>この単元とのつながり</th></tr>
+      <tr><td>成虫の形態観察</td><td>実体顕微鏡で、頭部・胸部・腹部と、触角・肢・翅・平均棍の位置を確認する</td><td>体節ごとに性質がちがう=ホメオティック遺伝子のはたらきの結果</td></tr>
+      <tr><td>体節の数え方</td><td>幼虫(または成虫)の体表のくびれを数え、胸部3節・腹部の節を確認する</td><td>分節遺伝子がつくったくり返し構造</td></tr>
+      <tr><td>変異体と野生型の比較</td><td>入手できる系統(退化翅、白眼など)を野生型と並べて比べる</td><td>1つの遺伝子の変化が形にどう表れるか</td></tr>
+      <tr><td>発生の経過</td><td>卵→幼虫→蛹→成虫の日数を記録する(25℃でおよそ10日前後)</td><td>発生が決まった順序で進むこと</td></tr>
+      <tr><td>資料による胚の観察</td><td>染色した胚の写真や動画で、縞状の発現パターンを見る</td><td>ペアルール遺伝子の1つおきの縞</td></tr>
+    </table>
+    <h3>記録しておくとよいこと</h3>
+    <ul class="li">
+      <li>飼育温度と日付(発生の速さは温度で変わります)</li>
+      <li>観察した個体の部位ごとのスケッチ(写真だけにたよらず、自分で描くと構造に気づきます)</li>
+      <li>気づいたこと・疑問に思ったこと(あとの考察で使います)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="no">事後の振り返り</span>観察と、この教材のしくみをつなぐ</h2>
+    <ol class="li">
+      <li>観察した成虫で、触角・肢・翅・平均棍はそれぞれ<b>どの体節</b>についていましたか。体節ごとに役割がちがうのはなぜか、説明してみよう。</li>
+      <li>もしホメオティック遺伝子が正しくはたらかないと、どんな見た目になると予想できますか。実際に知られている変異体(触角の位置に肢ができる、平均棍が翅になる)と比べてみよう。</li>
+      <li>母性因子は<b>母親の遺伝子型</b>で決まります。父親由来の遺伝子では前後の軸をつくり直せないのはなぜでしょう。</li>
+      <li>受精後しばらく、胚は核だけが分裂して細胞質を共有した状態(多核体)になります。このことは、タンパク質の濃度勾配ができることとどう関係しているでしょう。</li>
+      <li>「上位の遺伝子が下位の遺伝子の発現を調節する」という段階的なしくみには、どんな利点があると考えられますか。</li>
+      <li>ゲームでまちがえたとき、どの段階のまちがいがいちばん大きな影響を与えましたか。それはなぜだと思いますか。</li>
+    </ol>
+    <p class="note">この教材の図は、位置や縞の本数をわかりやすく単純化した模式図です。実際の発現領域は遺伝子どうしの調節によって連続的に決まり、境界もなめらかに変化します。研究によって細かい点は更新されることがあるので、断定的に覚えるのではなく「おおまかな順序としくみ」をつかむことを大切にしてください。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="no">用語</span>覚えておきたいことば</h2>
+    <table class="t">
+      <tr><th>母性因子(母性効果遺伝子の産物)</th><td>卵形成のときに母親の細胞から卵に蓄えられる mRNA やタンパク質。受精前からかたよって置かれており、前後軸などの基本的な軸を決める。</td></tr>
+      <tr><th>ビコイド</th><td>mRNA が卵の前端に局在する母性因子。翻訳されたタンパク質が前方ほど濃い濃度勾配をつくり、前方の構造の形成にはたらく。</td></tr>
+      <tr><th>ナノス</th><td>mRNA が卵の後端に局在する母性因子。後方の構造の形成にかかわる。</td></tr>
+      <tr><th>位置情報</th><td>物質の濃度のちがいによって、細胞(核)が「自分は前寄りか後ろ寄りか」を知るための情報。</td></tr>
+      <tr><th>分節遺伝子</th><td>体節をつくる遺伝子群。ギャップ遺伝子・ペアルール遺伝子・セグメントポラリティ遺伝子の順に、段階的に細かく領域を区切っていく。</td></tr>
+      <tr><th>ホメオティック遺伝子</th><td>それぞれの体節がどんな構造をつくるか(性質)を決める遺伝子群。変異すると、体節の性質が別の体節のものに置きかわる。</td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <details class="safety">
+    <summary>⚠ 安全上の注意(要点)</summary>
+    <ul>
+      <li>エーテル麻酔は引火性が非常に高い。火気厳禁・換気・教員の管理下で。可能なら二酸化炭素や氷冷を使う。</li>
+      <li>二酸化炭素は高濃度で酸欠の危険。換気し、ボンベは固定する。</li>
+      <li>培地のカビ防止剤は皮膚・目を刺激。手袋を使い、目に入ったら流水で15分以上洗って教員へ。</li>
+      <li>ハエを教室外に逃がさない。処分は教員の指示に従う。遺伝子組換え系統は扱わない。</li>
+      <li>実体顕微鏡の光源の熱と電源コードに注意。作業後は必ず手を洗う。</li>
+    </ul>
+  </details>
+  <p class="note" style="text-align:center;margin-top:12px">高等学校 生物「遺伝子の発現調節と発生」/ ショウジョウバエの発生 ─ 授業用インタラクティブ教材</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+var $=function(id){return document.getElementById(id);};
+var D2R=Math.PI/180;
+function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+
+/* ===================== 図解データ ===================== */
+var CIRC=["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫","⑬","⑭"];
+var STAGES=[
+ {t:"未受精卵",s:"母性因子の mRNA が両端に置かれる",
+  cap:"母親が卵をつくるときに、ビコイド mRNA を前端に、ナノス mRNA を後端に置いておく。まだ受精していないのに、前と後ろのちがいがすでにある。"},
+ {t:"受精直後",s:"タンパク質が拡散して濃度勾配ができる",
+  cap:"mRNA が翻訳されてタンパク質になり、両端から拡散する。核だけが分裂して細胞質がつながった状態(多核体)なので、タンパク質は胚全体に広がり、位置によって濃さのちがう「位置情報」ができる。"},
+ {t:"ギャップ遺伝子",s:"おおまかな領域に区切られる",
+  cap:"母性因子の濃度を読みとって、ギャップ遺伝子が数体節分ずつのおおまかな領域に発現する。この遺伝子がはたらかないと、連続した体節がまとめて失われる。"},
+ {t:"ペアルール遺伝子",s:"1つおきの縞に発現する",
+  cap:"ギャップ遺伝子の情報をもとに、ペアルール遺伝子が7本ずつの縞状に発現する。イーブンスキップドとフシタラズは互いちがいの位置に出る。変異すると1つおきに体節が失われる。"},
+ {t:"セグメントポラリティ遺伝子",s:"各体節の中の前後が決まる",
+  cap:"14の体節それぞれについて、中の前半と後半のちがいをつくる。エングレイルドは各体節の後部の区画ではたらく。これで体節の境目と向きがはっきりする。"},
+ {t:"ホメオティック遺伝子",s:"体節ごとの性質が決まる",
+  cap:"できあがった体節に「ここは頭」「ここは胸」といった性質を与える。変異すると、体節の性質が別の体節のものに置きかわる(触角の位置に肢ができる、平均棍が翅になるなど)。"}
+];
+var PARTS=[
+ {id:"ant",n:0,st:0,name:"前端(頭になる側)",
+  desc:"卵の前の端。ここが将来の頭のほうになる。受精する前から、この側と後ろ側では入っている物質がちがっている。",
+  tip:"図はいつも「左が前、右が後ろ」。まずこれを覚えると迷わない。"},
+ {id:"post",n:1,st:0,name:"後端(尾になる側)",
+  desc:"卵の後ろの端。将来の腹部の後ろのほうになる。ナノス mRNA がここに集まっている。",
+  tip:"前=ビコイド、後=ナノス。名前と向きをセットで覚えよう。"},
+ {id:"bcdM",n:2,st:0,name:"ビコイド mRNA(前端に局在)",
+  desc:"母親の細胞から卵に送りこまれた mRNA で、卵の前端に固定されている。母性因子のひとつ。受精後に翻訳されてタンパク質になる。",
+  tip:"mRNA の段階ですでにかたよって置かれている、というのがポイント。"},
+ {id:"nosM",n:3,st:0,name:"ナノス mRNA(後端に局在)",
+  desc:"同じく母性因子の mRNA で、卵の後端に局在する。後方の構造がつくられるのにはたらく。",
+  tip:"ビコイドと対になる存在。左右対称の位置に置かれている。"},
+ {id:"mat",n:4,st:0,name:"母性因子(母性効果遺伝子の産物)",
+  desc:"母親の遺伝子がつくり、卵にあらかじめ蓄えられた mRNA やタンパク質のこと。前後の軸のような、いちばん基本的な情報を与える。母親の遺伝子型で決まるため、子の遺伝子型では補えない。",
+  tip:"「母性」=お母さんが用意したもの。受精前から入っている。"},
+ {id:"multi",n:5,st:1,name:"多核体(核が細胞質を共有した状態)",
+  desc:"受精後しばらく、核だけが分裂して細胞質は仕切られない。そのため物質が胚全体に自由に広がることができ、なめらかな濃度勾配ができる。のちに細胞膜で仕切られて細胞になる。",
+  tip:"仕切りがないから拡散できる。ここが濃度勾配のできる理由。"},
+ {id:"bcdP",n:6,st:1,name:"ビコイドタンパク質の濃度勾配",
+  desc:"前端から拡散して、前ほど濃く後ろほどうすい勾配をつくる。核はこの濃さを読みとって、自分が前寄りか後ろ寄りかを知る。",
+  tip:"グラフが右下がりならビコイド。図の形で見分けよう。"},
+ {id:"nosP",n:7,st:1,name:"ナノスタンパク質の濃度勾配",
+  desc:"後端から拡散して、後ろほど濃い勾配をつくる。ビコイドとは逆向きの勾配になる。",
+  tip:"グラフが右上がりならナノス。ビコイドと交差する形になる。"},
+ {id:"posinfo",n:8,st:1,name:"位置情報",
+  desc:"物質の濃度のちがいそのものが、位置を示す情報になっている。同じ遺伝子をもつ核でも、置かれた場所の濃度がちがえば、はたらく遺伝子がちがってくる。",
+  tip:"「どこにいるか」を濃さで知る、というのが発生の基本的な考え方。"},
+ {id:"gap",n:9,st:2,name:"ギャップ遺伝子",
+  desc:"母性因子の濃度を読みとって、胚をおおまかな領域に区切る分節遺伝子。ハンチバックは前部、クリュッペルは中央部、ナノースは後部寄りで発現する。変異すると、連続した数体節がまとめて失われる。",
+  tip:"gap=すきま。まとまった体節がごっそり抜ける変異になる。"},
+ {id:"pair",n:10,st:3,name:"ペアルール遺伝子",
+  desc:"1つおきの縞状に発現する分節遺伝子。イーブンスキップドとフシタラズが互いちがいの位置に出て、体節のくり返し構造の下地をつくる。変異すると1つおきに体節が失われる。",
+  tip:"pair rule=2つで1組の規則。「1つおき」がキーワード。"},
+ {id:"segp",n:11,st:4,name:"セグメントポラリティ遺伝子",
+  desc:"それぞれの体節の中で、前半と後半のちがい(極性)をつくる分節遺伝子。エングレイルドは各体節の後部の区画ではたらく。これで体節の境目と向きが決まる。",
+  tip:"polarity=極性。体節「の中」を分ける、いちばん細かい段階。"},
+ {id:"seg",n:12,st:4,name:"体節(セグメント)",
+  desc:"くり返し並ぶ体のブロック。頭部・胸部3節・腹部の節からなる。分節遺伝子がはたらいた結果できる、この動物の体の基本的な設計になる。",
+  tip:"分節遺伝子3段階の「できあがり」が体節。"},
+ {id:"hom",n:13,st:5,name:"ホメオティック遺伝子",
+  desc:"それぞれの体節が何になるかという性質を決める遺伝子群。変異すると体節の性質が別の体節のものに置きかわり、触角の位置に肢ができたり、平均棍が翅になったりする。",
+  tip:"体節を「つくる」のではなく「性質を決める」。ここが分節遺伝子との違い。"}
+];
+var byId={};PARTS.forEach(function(o){byId[o.id]=o;});
+
+var F={stage:0,mode:"learn",sel:null};
+var quizS={ans:{},correct:0,total:0};
+
+/* ===================== SVG 部品 ===================== */
+function T(x,y,s,o){o=o||{};return '<text x="'+x+'" y="'+y+'" font-size="'+(o.s||13)+'" fill="'+(o.c||"#1b2430")+'"'
+ +' text-anchor="'+(o.a||"start")+'" font-weight="'+(o.w||"400")+'"'
+ +(o.r?' transform="rotate('+o.r+','+x+','+y+')"':'')
+ +(o.mono?' font-family="ui-monospace,Menlo,Consolas,monospace"':' font-family="Hiragino Kaku Gothic ProN,Yu Gothic,Noto Sans JP,sans-serif"')
+ +'>'+s+'</text>';}
+function P(id,inner){var o=byId[id];
+  return '<g class="part'+(F.sel===id?" sel":"")+'" data-id="'+id+'" tabindex="0" role="button" aria-label="'+o.name+'">'+inner+'</g>';}
+function lbl(x,y,id,text,o){o=o||{};
+  return '<g class="hideT">'+T(x,y,text,o)+'</g><g class="badge">'
+   +T(x,y,CIRC[byId[id].n],{s:(o.s||13)+5,w:"700",a:o.a,c:o.c,r:o.r})+'</g>';}
+var DEFS='<defs>'
+ +'<marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
+ +'<path d="M0,0 L10,5 L0,10 z" fill="#57626e"/></marker>'
+ +'<linearGradient id="gBcd" x1="0" y1="0" x2="1" y2="0">'
+ +'<stop offset="0" stop-color="#27508f" stop-opacity="0.85"/><stop offset="1" stop-color="#27508f" stop-opacity="0.04"/></linearGradient>'
+ +'<linearGradient id="gNos" x1="0" y1="0" x2="1" y2="0">'
+ +'<stop offset="0" stop-color="#a8452f" stop-opacity="0.04"/><stop offset="1" stop-color="#a8452f" stop-opacity="0.85"/></linearGradient>'
+ +'<pattern id="hatchA" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+ +'<rect width="8" height="8" fill="#dde5f4"/><line x1="0" y1="0" x2="0" y2="8" stroke="#27508f" stroke-width="2.4"/></pattern>'
+ +'<pattern id="dotP" width="8" height="8" patternUnits="userSpaceOnUse">'
+ +'<rect width="8" height="8" fill="#f7e2dc"/><circle cx="4" cy="4" r="1.8" fill="#a8452f"/></pattern>'
+ +'</defs>';
+
+var X0=95,X1=815,W=720;   /* 卵の前後軸 */
+function px(r){return X0+r*W;}
+
+function buildFig(){
+  var st=F.stage,s=DEFS;
+
+  /* --- 軸のラベル --- */
+  s+=P("ant",'<rect class="hit" x="30" y="60" width="58" height="120" rx="8" fill="#eef2f8" stroke="#27508f" stroke-width="2"/>'
+   +'<rect class="ol" x="30" y="60" width="58" height="120" rx="8"/>'
+   +T(59,104,"●",{a:"middle",s:20,c:"#27508f",w:"700"})
+   +lbl(59,132,"ant","前",{a:"middle",s:19,w:"700",c:"#27508f"})
+   +lbl(59,156,"ant","端",{a:"middle",s:19,w:"700",c:"#27508f"}));
+  s+=P("post",'<rect class="hit" x="822" y="60" width="58" height="120" rx="8" fill="#faf0ec" stroke="#a8452f" stroke-width="2"/>'
+   +'<rect class="ol" x="822" y="60" width="58" height="120" rx="8"/>'
+   +T(851,104,"■",{a:"middle",s:20,c:"#a8452f",w:"700"})
+   +lbl(851,132,"post","後",{a:"middle",s:19,w:"700",c:"#a8452f"})
+   +lbl(851,156,"post","端",{a:"middle",s:19,w:"700",c:"#a8452f"}));
+
+  /* --- 卵本体 --- */
+  s+='<rect x="'+X0+'" y="58" width="'+W+'" height="124" rx="62" fill="#fbfaf6" stroke="#1b2430" stroke-width="3"/>';
+  s+=T(px(0.5),34,"ショウジョウバエの卵(左が前、右が後ろ)",{a:"middle",s:14,w:"700"});
+
+  if(st===0){
+    /* mRNA の局在 */
+    s+=P("bcdM",'<ellipse class="hit" cx="'+px(0.07)+'" cy="120" rx="46" ry="48" fill="url(#hatchA)" stroke="#27508f" stroke-width="2.4"/>'
+     +'<ellipse class="ol" cx="'+px(0.07)+'" cy="120" rx="46" ry="48"/>'
+     +lbl(px(0.07),206,"bcdM","● ビコイド mRNA",{a:"middle",s:14,w:"700",c:"#27508f"}));
+    s+=P("nosM",'<ellipse class="hit" cx="'+px(0.93)+'" cy="120" rx="46" ry="48" fill="url(#dotP)" stroke="#a8452f" stroke-width="2.4"/>'
+     +'<ellipse class="ol" cx="'+px(0.93)+'" cy="120" rx="46" ry="48"/>'
+     +lbl(px(0.93),206,"nosM","■ ナノス mRNA",{a:"middle",s:14,w:"700",c:"#a8452f"}));
+    s+=P("mat",'<rect class="hit" x="'+px(0.3)+'" y="228" width="'+(W*0.4)+'" height="52" rx="10" fill="#f2f5f8" stroke="#57626e" stroke-width="2"/>'
+     +'<rect class="ol" x="'+px(0.3)+'" y="228" width="'+(W*0.4)+'" height="52" rx="10"/>'
+     +lbl(px(0.5),252,"mat","母性因子",{a:"middle",s:16,w:"700"})
+     +'<g class="hideT">'+T(px(0.5),272,"母親が卵に入れておいた mRNA・タンパク質",{a:"middle",s:12,c:"#57626e"})+'</g>');
+    s+=T(px(0.5),320,"※ 受精する前から、前と後ろで入っているものがちがう",{a:"middle",s:13,c:"#57626e"});
+  }
+
+  if(st>=1){
+    /* 多核体 */
+    var dots='',i,j;
+    for(i=0;i<26;i++){
+      for(j=0;j<2;j++){
+        var rx=0.04+i*0.0355, ry=92+j*56;
+        dots+='<circle cx="'+px(rx)+'" cy="'+ry+'" r="6.5" fill="#ffffff" stroke="#1b2430" stroke-width="1.8"/>';
+      }
+    }
+    s+=P("multi",'<rect class="hit" x="'+X0+'" y="58" width="'+W+'" height="124" rx="62" fill="rgba(0,0,0,0.02)"/>'
+     +'<g pointer-events="none">'+dots+'</g>'
+     +'<rect class="ol" x="'+X0+'" y="58" width="'+W+'" height="124" rx="62"/>'
+     +lbl(px(0.5),120,"multi","多核体(核だけが分裂し、細胞質はつながっている)",{a:"middle",s:13,w:"700"}));
+  }
+
+  if(st>=1){
+    /* 濃度勾配のグラフ */
+    var gy0=214,gy1=316;
+    s+='<rect x="'+X0+'" y="'+gy0+'" width="'+W+'" height="'+(gy1-gy0)+'" fill="#fbfcfd" stroke="#c4ccd4" stroke-width="1.5"/>';
+    var pb='',pn='',k;
+    for(k=0;k<=60;k++){
+      var r=k/60;
+      var vb=Math.exp(-r*2.6), vn=Math.exp(-(1-r)*2.6);
+      pb+=px(r).toFixed(1)+','+(gy1-vb*(gy1-gy0-10)).toFixed(1)+' ';
+      pn+=px(r).toFixed(1)+','+(gy1-vn*(gy1-gy0-10)).toFixed(1)+' ';
+    }
+    s+=P("bcdP",'<polyline class="hit" points="'+pb+'" fill="none" stroke="#27508f" stroke-width="5"/>'
+     +'<polyline class="ol" points="'+pb+'" fill="none"/>'
+     +lbl(px(0.16),gy0+26,"bcdP","● ビコイドタンパク質",{s:13,w:"700",c:"#27508f"}));
+    s+=P("nosP",'<polyline class="hit" points="'+pn+'" fill="none" stroke="#a8452f" stroke-width="5" stroke-dasharray="11 7"/>'
+     +'<polyline class="ol" points="'+pn+'" fill="none"/>'
+     +lbl(px(0.84),gy0+26,"nosP","■ ナノスタンパク質",{a:"end",s:13,w:"700",c:"#a8452f"}));
+    s+=T(X0-8,gy0+14,"濃",{a:"end",s:12,c:"#57626e"});
+    s+=T(X0-8,gy1,"うすい",{a:"end",s:12,c:"#57626e"});
+    s+=P("posinfo",'<rect class="hit" x="'+px(0.36)+'" y="'+(gy1+8)+'" width="'+(W*0.28)+'" height="34" rx="8" fill="#f2f5f8" stroke="#57626e" stroke-width="1.8"/>'
+     +'<rect class="ol" x="'+px(0.36)+'" y="'+(gy1+8)+'" width="'+(W*0.28)+'" height="34" rx="8"/>'
+     +lbl(px(0.5),gy1+31,"posinfo","位置情報",{a:"middle",s:15,w:"700"}));
+  }
+
+  var y=372;
+  /* ギャップ遺伝子 */
+  if(st>=2){
+    var gaps=[[0.06,0.34,"ハンチバック","#2c6b52"],[0.37,0.62,"クリュッペル","#2c6b52"],[0.64,0.9,"ナノース","#2c6b52"]];
+    var inner='';
+    gaps.forEach(function(g2,gi){
+      inner+='<rect x="'+px(g2[0])+'" y="'+y+'" width="'+(W*(g2[1]-g2[0]))+'" height="40" rx="6" fill="#dceee5" stroke="#2c6b52" stroke-width="2.2"/>';
+      inner+='<g class="hideT">'+T(px((g2[0]+g2[1])/2),y+26,"▲ "+g2[2],{a:"middle",s:13,w:"700",c:"#2c6b52"})+'</g>';
+    });
+    s+=P("gap",'<g class="hit">'+inner+'</g>'
+     +'<rect class="ol" x="'+px(0.05)+'" y="'+(y-3)+'" width="'+(W*0.86)+'" height="46" rx="8"/>'
+     +lbl(X0-10,y+26,"gap","ギャップ遺伝子",{a:"end",s:13,w:"700",c:"#2c6b52"}));
+    y+=54;
+  }
+  /* ペアルール遺伝子 */
+  if(st>=3){
+    var inner2='',t2;
+    for(t2=0;t2<14;t2++){
+      var r0=0.07+t2*0.0615;
+      var odd=(t2%2===0);
+      inner2+='<rect x="'+px(r0)+'" y="'+y+'" width="'+(W*0.03)+'" height="40" rx="3" fill="'+(odd?"#e6ddf0":"#ffffff")+'" stroke="#6b4a86" stroke-width="2" stroke-dasharray="'+(odd?"":"4 3")+'"/>';
+    }
+    s+=P("pair",'<g class="hit">'+inner2+'</g>'
+     +'<rect class="ol" x="'+px(0.05)+'" y="'+(y-3)+'" width="'+(W*0.86)+'" height="46" rx="8"/>'
+     +lbl(X0-10,y+26,"pair","ペアルール遺伝子",{a:"end",s:13,w:"700",c:"#6b4a86"})
+     +'<g class="hideT">'+T(px(0.5),y+58,"ぬりつぶし=イーブンスキップド / 破線=フシタラズ(1つおき)",{a:"middle",s:12,c:"#57626e"})+'</g>');
+    y+=68;
+  }
+  /* セグメントポラリティ */
+  if(st>=4){
+    var inner3='',t3;
+    for(t3=0;t3<14;t3++){
+      var a0=0.055+t3*0.0635;
+      inner3+='<rect x="'+px(a0)+'" y="'+y+'" width="'+(W*0.032)+'" height="36" fill="#fff6dd" stroke="#8a6a12" stroke-width="1.6"/>';
+      inner3+='<rect x="'+px(a0+0.032)+'" y="'+y+'" width="'+(W*0.026)+'" height="36" fill="#8a6a12" fill-opacity="0.55" stroke="#8a6a12" stroke-width="1.6"/>';
+    }
+    s+=P("segp",'<g class="hit">'+inner3+'</g>'
+     +'<rect class="ol" x="'+px(0.05)+'" y="'+(y-3)+'" width="'+(W*0.87)+'" height="42" rx="8"/>'
+     +lbl(X0-10,y+24,"segp","セグメントポラリティ遺伝子",{a:"end",s:13,w:"700",c:"#8a6a12"})
+     +'<g class="hideT">'+T(px(0.5),y+54,"各体節の中を前半(白)と後半(色つき)に分ける",{a:"middle",s:12,c:"#57626e"})+'</g>');
+    y+=66;
+  }
+  /* 体節と幼虫 */
+  if(st>=4){
+    var body='',t4;
+    body+='<rect x="'+px(0.04)+'" y="'+y+'" width="'+(W*0.92)+'" height="54" rx="26" fill="#fdf6e6" stroke="#1b2430" stroke-width="2.6"/>';
+    for(t4=1;t4<14;t4++){
+      var xx=px(0.04+t4*0.0655);
+      body+='<line x1="'+xx+'" y1="'+(y+3)+'" x2="'+xx+'" y2="'+(y+51)+'" stroke="#1b2430" stroke-width="1.8"/>';
+    }
+    s+=P("seg",'<g class="hit">'+body+'</g>'
+     +'<rect class="ol" x="'+px(0.04)+'" y="'+y+'" width="'+(W*0.92)+'" height="54" rx="26"/>'
+     +lbl(px(0.5),y+33,"seg","体節(くり返し構造)",{a:"middle",s:15,w:"700"}));
+    /* 領域 */
+    s+='<g class="hideT">';
+    s+='<line x1="'+px(0.04)+'" y1="'+(y+66)+'" x2="'+px(0.2)+'" y2="'+(y+66)+'" stroke="#57626e" stroke-width="2.4"/>';
+    s+=T(px(0.12),y+84,"頭部",{a:"middle",s:13,w:"700"});
+    s+='<line x1="'+px(0.21)+'" y1="'+(y+66)+'" x2="'+px(0.42)+'" y2="'+(y+66)+'" stroke="#57626e" stroke-width="2.4"/>';
+    s+=T(px(0.315),y+84,"胸部(3節)",{a:"middle",s:13,w:"700"});
+    s+='<line x1="'+px(0.43)+'" y1="'+(y+66)+'" x2="'+px(0.96)+'" y2="'+(y+66)+'" stroke="#57626e" stroke-width="2.4"/>';
+    s+=T(px(0.695),y+84,"腹部",{a:"middle",s:13,w:"700"});
+    s+='</g>';
+    y+=98;
+  }
+  /* ホメオティック */
+  if(st>=5){
+    s+=P("hom",'<rect class="hit" x="'+px(0.04)+'" y="'+y+'" width="'+(W*0.92)+'" height="52" rx="10" fill="#f1ecf7" stroke="#6b4a86" stroke-width="2.4"/>'
+     +'<rect class="ol" x="'+px(0.04)+'" y="'+y+'" width="'+(W*0.92)+'" height="52" rx="10"/>'
+     +lbl(px(0.5),y+22,"hom","◆ ホメオティック遺伝子",{a:"middle",s:15,w:"700",c:"#6b4a86"})
+     +'<g class="hideT">'+T(px(0.5),y+42,"頭部には触角、胸部には肢や翅 …… 体節ごとの性質を決める",{a:"middle",s:12.5,c:"#57626e"})+'</g>');
+  }
+  return s;
+}
+
+/* ===================== 図解の操作 ===================== */
+function renderFig(){
+  $("fig").innerHTML=buildFig();
+  var st=STAGES[F.stage];
+  $("figTitle").textContent="段階"+(F.stage+1)+" "+st.t+" ─ "+st.s;
+  $("figCap").textContent=st.cap;
+  var h=[340,420,470,560,610,640][F.stage];
+  $("fig").setAttribute("viewBox","0 0 900 "+h);
+  Array.prototype.forEach.call($("stagebar").children,function(b,i){
+    b.setAttribute("aria-pressed",i===F.stage);
+  });
+  $("prevS").disabled=(F.stage===0);
+  $("nextS").disabled=(F.stage===STAGES.length-1);
+  bindParts();
+}
+function bindParts(){
+  var els=$("fig").querySelectorAll(".part");
+  Array.prototype.forEach.call(els,function(g){
+    g.addEventListener("click",function(){selectPart(g.dataset.id);});
+    g.addEventListener("keydown",function(e){
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();selectPart(g.dataset.id);}
+    });
+  });
+}
+function selectPart(id){
+  F.sel=id;renderFig();
+  if(F.mode==="learn"){showInfo(id);}else{askQuiz(id);}
+}
+function showInfo(id){
+  var o=byId[id];
+  $("infoTitle").textContent=CIRC[o.n]+" "+o.name;
+  $("infoBody").textContent=o.desc;
+  $("infoTip").style.display="";
+  $("infoTip").innerHTML="<b>おぼえかた:</b> "+o.tip;
+}
+function setMode(m){
+  F.mode=m;document.body.classList.toggle("test",m==="test");
+  $("mLearn").setAttribute("aria-pressed",m==="learn");
+  $("mTest").setAttribute("aria-pressed",m==="test");
+  $("learnPane").style.display=(m==="learn")?"":"none";
+  $("testPane").style.display=(m==="test")?"":"none";
+  $("infoHead").textContent=(m==="learn")?"図の番号をタップしよう":"名前かくしテスト";
+  if(m==="test"){
+    $("qOpts").innerHTML="";$("judge").textContent="";$("qDesc").textContent="";
+    $("qPrompt").textContent="図の番号をタップして、その名前を答えよう。";
+  }
+  F.sel=null;renderFig();updScore();
+}
+var STAGE_IDS=[];
+function buildStageIndex(){
+  var save=F.stage,i;STAGE_IDS=[];
+  for(i=0;i<STAGES.length;i++){
+    F.stage=i;
+    var html=buildFig(),re=/data-id="([^"]+)"/g,m,set={};
+    while((m=re.exec(html))){set[m[1]]=1;}
+    STAGE_IDS.push(Object.keys(set));
+  }
+  F.stage=save;
+}
+function firstStageOf(id){
+  for(var i=0;i<STAGE_IDS.length;i++){ if(STAGE_IDS[i].indexOf(id)>=0){return i+1;} }
+  return 1;
+}
+function updScore(){
+  $("scoreLine").textContent="正解 "+quizS.correct+" / 解答 "+quizS.total+"(全"+PARTS.length+"問)";
+  var el=$("remain");if(!el){return;}
+  var rem=PARTS.filter(function(p){return !quizS.ans[p.id];});
+  if(rem.length===0){el.textContent="全部の部分に答えました。おつかれさま!";return;}
+  var by={};
+  rem.forEach(function(p){var st=firstStageOf(p.id);by[st]=(by[st]||0)+1;});
+  el.textContent="のこり "+rem.length+" 個 ─ "
+    +Object.keys(by).sort(function(a,b){return a-b;}).map(function(k){return "段階"+k+"に"+by[k]+"個";}).join("、")
+    +"(段階を切りかえて探そう)";
+}
+function askQuiz(id){
+  var o=byId[id];
+  $("qPrompt").textContent=CIRC[o.n]+" の名前は?";
+  $("judge").textContent="";$("judge").className="judge";$("qDesc").textContent="";
+  var pool=PARTS.filter(function(x){return x.id!==id;}),i,j,t;
+  for(i=pool.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  var opts=[o.name].concat(pool.slice(0,3).map(function(x){return x.name;}));
+  for(i=opts.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=opts[i];opts[i]=opts[j];opts[j]=t;}
+  var box=$("qOpts");box.innerHTML="";
+  opts.forEach(function(nm){
+    var b=document.createElement("button");b.type="button";b.textContent=nm;
+    b.addEventListener("click",function(){answerQuiz(b,nm,o);});
+    box.appendChild(b);
+  });
+}
+function answerQuiz(btn,nm,o){
+  var ok=(nm===o.name);
+  Array.prototype.forEach.call($("qOpts").children,function(c){
+    c.disabled=true;if(c.textContent===o.name){c.classList.add("correct");}
+  });
+  if(!ok){btn.classList.add("wrong");}
+  $("judge").textContent=ok?"○ 正解!":"✕ 正しくは「"+o.name+"」";
+  $("judge").className="judge "+(ok?"o":"x");
+  $("qDesc").textContent=o.desc;
+  if(!quizS.ans[o.id]){quizS.ans[o.id]=true;quizS.total++;if(ok){quizS.correct++;}updScore();}
+}
+
+/* ===================== ゲーム ===================== */
+var cv=$("cv"),ctx=cv.getContext("2d");
+var LW=900,LH=560,VS=1;
+
+function stripes(){var a=[],i;for(i=0;i<14;i++){
+  a.push({c:0.085+i*0.0637,h:0.026,t:(i+1)+"",k:(i%2===0?"odd":"even"),seg:[i,i]});}return a;}
+function halves(){var a=[],i;for(i=0;i<14;i++){var b=0.068+i*0.0643;
+  a.push({c:b-0.0165,h:0.0155,t:"前",k:"front",seg:[i,i]});
+  a.push({c:b+0.0165,h:0.0155,t:"後",k:"back",seg:[i,i]});}return a;}
+
+var LV=[
+{name:"ステージ1 母性因子",sub:"前後の軸を決める",speed:0.40,
+ zones:[{c:0.10,h:0.075,t:"前端",k:"ant",seg:[0,2]},{c:0.90,h:0.075,t:"後端",k:"post",seg:[11,13]}],
+ tasks:[{k:"ant",l:"ビコイド mRNA",h:"卵の前端に置かれる"},{k:"post",l:"ナノス mRNA",h:"卵の後端に置かれる"},
+        {k:"post",l:"ナノス mRNA",h:"卵の後端に置かれる"},{k:"ant",l:"ビコイド mRNA",h:"卵の前端に置かれる"}],
+ unique:false,
+ pass:"前端と後端のちがいができました。ここから濃度勾配がつくられます。",
+ fail:"母性因子の置き場所がずれると、前後の軸そのものを正しくつくれません。ビコイドがはたらかない卵では前方の構造ができないことが知られています。"},
+{name:"ステージ2 ギャップ遺伝子",sub:"おおまかな領域に区切る",speed:0.50,
+ zones:[{c:0.17,h:0.10,t:"前部",k:"hb",seg:[0,4]},{c:0.50,h:0.10,t:"中央部",k:"kr",seg:[5,8]},
+        {c:0.83,h:0.10,t:"後部",k:"kni",seg:[9,13]}],
+ tasks:[{k:"hb",l:"ハンチバック",h:"前部ではたらく"},{k:"kr",l:"クリュッペル",h:"中央部ではたらく"},
+        {k:"kni",l:"ナノース",h:"後部ではたらく"},{k:"kr",l:"クリュッペル",h:"中央部ではたらく"},
+        {k:"hb",l:"ハンチバック",h:"前部ではたらく"},{k:"kni",l:"ナノース",h:"後部ではたらく"}],
+ unique:false,
+ pass:"胚がおおまかな領域に区切られました。次はもっと細かく分けます。",
+ fail:"ギャップ遺伝子がずれると、連続した数体節がまとめて失われます。"},
+{name:"ステージ3 ペアルール遺伝子",sub:"1つおきの縞をつくる",speed:0.22,ramp:1.02,
+ zones:stripes(),
+ tasks:[{k:"odd",l:"イーブンスキップド",h:"奇数の縞にはたらく"},{k:"even",l:"フシタラズ",h:"偶数の縞にはたらく"},
+        {k:"odd",l:"イーブンスキップド",h:"奇数の縞にはたらく"},{k:"even",l:"フシタラズ",h:"偶数の縞にはたらく"},
+        {k:"odd",l:"イーブンスキップド",h:"奇数の縞にはたらく"},{k:"even",l:"フシタラズ",h:"偶数の縞にはたらく"},
+        {k:"odd",l:"イーブンスキップド",h:"奇数の縞にはたらく"}],
+ unique:true,
+ pass:"1つおきの縞ができました。体節のくり返し構造の下地です。",
+ fail:"ペアルール遺伝子がずれると、1つおきに体節が失われます。"},
+{name:"ステージ4 セグメントポラリティ遺伝子",sub:"体節の中の前後を決める",speed:0.135,ramp:1.02,
+ zones:halves(),
+ tasks:[{k:"back",l:"エングレイルド",h:"各体節の後半ではたらく"},{k:"front",l:"ウイングレス",h:"各体節の前半ではたらく"},
+        {k:"back",l:"エングレイルド",h:"各体節の後半ではたらく"},{k:"front",l:"ウイングレス",h:"各体節の前半ではたらく"},
+        {k:"back",l:"エングレイルド",h:"各体節の後半ではたらく"},{k:"front",l:"ウイングレス",h:"各体節の前半ではたらく"},
+        {k:"back",l:"エングレイルド",h:"各体節の後半ではたらく"},{k:"front",l:"ウイングレス",h:"各体節の前半ではたらく"}],
+ unique:true,
+ pass:"体節の境目と向きが決まりました。あとは、それぞれの体節が何になるかです。",
+ fail:"体節の中の前後の区別があいまいになり、境目や向きが正しくつくられません。"},
+{name:"ステージ5 ホメオティック遺伝子",sub:"体節ごとの性質を決める",speed:0.52,
+ zones:[{c:0.12,h:0.09,t:"頭部",k:"head",seg:[0,2]},{c:0.36,h:0.11,t:"胸部",k:"thorax",seg:[3,5]},
+        {c:0.74,h:0.20,t:"腹部",k:"abd",seg:[6,13]}],
+ tasks:[{k:"head",l:"触角をつくる",h:"頭部の体節"},{k:"thorax",l:"肢をつくる",h:"胸部の体節"},
+        {k:"thorax",l:"翅をつくる",h:"胸部の体節"},{k:"abd",l:"腹部の節をつくる",h:"腹部の体節"},
+        {k:"thorax",l:"平均棍をつくる",h:"胸部の体節"},{k:"abd",l:"腹部の節をつくる",h:"腹部の体節"}],
+ unique:false,
+ pass:"体節ごとの性質が決まり、体ができあがりました。",
+ fail:"体節の性質が別の体節のものに置きかわります。触角の位置に肢ができる変異や、平均棍が翅になって翅が4枚になる変異が知られています。"}
+];
+var DIFFG=[{k:"れんしゅう",sp:0.72,allow:3,help:true},
+           {k:"ふつう",   sp:1.00,allow:2,help:false},
+           {k:"はやい",   sp:1.18,allow:1,help:false}];
+
+var G={phase:"title",diff:1,lv:0,ti:0,score:0,combo:0,best:0,hp:100,misses:0,
+       sweep:0.5,dir:1,spd:0.4,used:{},segs:[],segSnap:[],fx:[],shake:0,armed:true};
+function resetSegs(){G.segs=[];for(var i=0;i<14;i++){G.segs.push(0);}}
+resetSegs();
+
+var keys={};
+window.addEventListener("keydown",function(e){
+  if(e.key===" "){e.preventDefault();if(G.phase==="play"){fire();}}
+  if(e.key==="Enter"){var b=$("gCtrl").querySelector(".btn.primary");if(b){b.click();}}
+  keys[e.key]=true;
+});
+window.addEventListener("keyup",function(e){keys[e.key]=false;});
+cv.addEventListener("pointerdown",function(e){
+  e.preventDefault();
+  if(G.phase==="play"){fire();}
+});
+
+function curLV(){return LV[G.lv];}
+function curTask(){var L=curLV();return L.tasks[G.ti]||null;}
+function zoneKey(z,i){return i;}
+
+function startGame(){G.score=0;G.best=0;resetSegs();startLevel(0);}
+function startLevel(i){
+  var L=LV[i];
+  G.lv=i;G.ti=0;G.hp=100;G.misses=0;G.used={};G.combo=0;
+  G.sweep=0.5;G.dir=1;G.spd=L.speed*DIFFG[G.diff].sp;
+  G.segSnap=G.segs.slice();
+  G.fx=[];G.armed=true;
+  setPhase("play");
+}
+function setPhase(p){G.phase=p;updateG();updateHud();}
+
+/* ---------- 判定 ---------- */
+function markSegs(z,ok){
+  var i;
+  for(i=z.seg[0];i<=z.seg[1];i++){
+    if(ok){ if(G.segs[i]!==2){G.segs[i]=1;} }
+    else{ G.segs[i]=2; }
+  }
+}
+function validZones(){
+  var L=curLV(),t=curTask(),out=[],i;
+  if(!t){return out;}
+  for(i=0;i<L.zones.length;i++){
+    if(L.zones[i].k!==t.k){continue;}
+    if(L.unique&&G.used[i]){continue;}
+    out.push({z:L.zones[i],i:i});
+  }
+  return out;
+}
+function fire(){
+  if(!G.armed||G.phase!=="play"||!curTask()){return;}
+  G.armed=false;
+  var L=curLV(),v=validZones(),i,best=null,bd=1e9;
+  for(i=0;i<v.length;i++){
+    var d=Math.abs(G.sweep-v[i].z.c);
+    if(d<bd){bd=d;best=v[i];}
+  }
+  var res;
+  if(best&&bd<=best.z.h){
+    var perfect=bd<=best.z.h*0.4;
+    res=perfect?"perfect":"good";
+    G.combo++;G.best=Math.max(G.best,G.combo);
+    G.score+=(perfect?150:80)+Math.min(120,G.combo*10);
+    G.used[best.i]=true;
+    markSegs(best.z,true);
+    G.hp=Math.min(100,G.hp+4);
+    G.fx.push({t:0.85,x:best.z.c,txt:perfect?"パーフェクト!":"セーフ",ok:true});
+  }else{
+    res="miss";
+    G.combo=0;G.misses++;G.hp-=22;G.shake=0.32;
+    /* いちばん近い正しい場所に変異が起こる */
+    if(best){G.used[best.i]=true;markSegs(best.z,false);}
+    else{
+      var all=L.zones.filter(function(z){return z.k===curTask().k;});
+      if(all.length){markSegs(all[0],false);}
+    }
+    G.fx.push({t:1.2,x:G.sweep,txt:"ミス",ok:false,aim:best?best.z.c:null});
+  }
+  G.ti++;
+  if(G.ti>=L.tasks.length){
+    setTimeout(endLevel,700);
+  }else{
+    G.spd=Math.min(L.speed*DIFFG[G.diff].sp*1.6, G.spd*(L.ramp||1.05));
+    setTimeout(function(){G.armed=true;},260);
+  }
+  updateHud();
+}
+function endLevel(){
+  var L=curLV();
+  if(G.misses>DIFFG[G.diff].allow){setPhase("fail");}
+  else if(G.lv>=LV.length-1){setPhase("clear");}
+  else{setPhase("lvdone");}
+}
+
+/* ---------- ループ ---------- */
+var last=null;
+function loop(ts){
+  if(last===null){last=ts;}
+  var dt=Math.min(0.05,(ts-last)/1000);last=ts;
+  if(G.phase==="play"){
+    G.sweep+=G.dir*G.spd*dt;
+    if(G.sweep>1){G.sweep=1;G.dir=-1;}
+    if(G.sweep<0){G.sweep=0;G.dir=1;}
+  }
+  if(G.shake>0){G.shake-=dt;}
+  var i;for(i=G.fx.length-1;i>=0;i--){G.fx[i].t-=dt;if(G.fx[i].t<=0){G.fx.splice(i,1);}}
+  drawGame();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- 描画 ---------- */
+var EX0=70,EX1=830,EW2=760,EYT=180,EYB=340;
+function gx(r){return EX0+r*EW2;}
+var ZC={ant:"#27508f",post:"#a8452f",hb:"#2c6b52",kr:"#2c6b52",kni:"#2c6b52",
+        odd:"#6b4a86",even:"#8a6a12",front:"#2c6b52",back:"#6b4a86",
+        head:"#27508f",thorax:"#2c6b52",abd:"#a8452f"};
+function rr2(g,x,y,w,h,r){
+  g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.quadraticCurveTo(x+w,y,x+w,y+r);
+  g.lineTo(x+w,y+h-r);g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  g.lineTo(x+r,y+h);g.quadraticCurveTo(x,y+h,x,y+h-r);
+  g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath();
+}
+function drawLarva(g,cx,cy,w,h,big){
+  var n=14,sw=w/n,i;
+  for(i=0;i<n;i++){
+    var st=G.segs[i],x=cx-w/2+i*sw;
+    var hh=h*(st===2?0.62:1)*(big?1:1);
+    var yy=cy-hh/2;
+    g.fillStyle=(st===0)?"rgba(255,255,255,.10)":(st===1)?"#f3ead6":"#e8b7ab";
+    g.strokeStyle=(st===0)?"rgba(255,255,255,.35)":(st===1)?"#1b2430":"#8f3b2e";
+    g.lineWidth=2;
+    rr2(g,x+1,yy,sw-2,hh,Math.min(6,sw/3));g.fill();g.stroke();
+    if(st===2){
+      g.strokeStyle="#8f3b2e";g.lineWidth=2.4;
+      g.beginPath();g.moveTo(x+sw*0.28,yy+hh*0.3);g.lineTo(x+sw*0.72,yy+hh*0.7);
+      g.moveTo(x+sw*0.72,yy+hh*0.3);g.lineTo(x+sw*0.28,yy+hh*0.7);g.stroke();
+    }
+  }
+  g.fillStyle="rgba(255,255,255,.55)";g.font="700 11px sans-serif";g.textAlign="center";
+  g.fillText("前",cx-w/2-14,cy+4);g.fillText("後",cx+w/2+14,cy+4);
+}
+function drawGame(){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle="#101820";ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.setTransform(VS,0,0,VS,0,0);
+  var g=ctx;
+  g.save();
+  if(G.shake>0){g.translate((Math.random()-0.5)*10,(Math.random()-0.5)*10);}
+
+  if(G.phase==="title"){
+    g.fillStyle="#e6ecf2";g.font="700 28px sans-serif";g.textAlign="center";
+    g.fillText("胚を組み立てろ",LW/2,LH/2-30);
+    g.fillStyle="#a9b6c2";g.font="15px sans-serif";
+    g.fillText("走査線が正しい場所に来たしゅんかんに「発現!」",LW/2,LH/2+6);
+    g.fillText("ずれると、その場所に変異が残ります",LW/2,LH/2+32);
+    g.restore();return;
+  }
+
+  var L=curLV(),help=DIFFG[G.diff].help;
+
+  /* 見出し */
+  g.fillStyle="#e6ecf2";g.font="700 17px sans-serif";g.textAlign="left";
+  g.fillText(L.name,20,30);
+  g.fillStyle="#a9b6c2";g.font="13px sans-serif";
+  g.fillText(L.sub,20,50);
+
+  /* 幼虫プレビュー */
+  g.fillStyle="#8b98a5";g.font="700 12px sans-serif";g.textAlign="center";
+  g.fillText("できあがっていく幼虫",LW/2,86);
+  drawLarva(g,LW/2,116,520,40,false);
+
+  /* 卵 */
+  g.fillStyle="#f7f3e8";g.strokeStyle="#1b2430";g.lineWidth=3;
+  rr2(g,EX0,EYT,EW2,EYB-EYT,(EYB-EYT)/2);g.fill();g.stroke();
+  g.save();rr2(g,EX0,EYT,EW2,EYB-EYT,(EYB-EYT)/2);g.clip();
+
+  var t=(G.phase==="play")?curTask():null;
+  var vlist=(G.phase==="play")?validZones():[];
+  var vset={};vlist.forEach(function(v){vset[v.i]=1;});
+
+  L.zones.forEach(function(z,i){
+    var x0=gx(z.c-z.h),x1=gx(z.c+z.h),c=ZC[z.k]||"#57626e";
+    var isValid=!!vset[i], isUsed=!!G.used[i];
+    g.globalAlpha=isUsed?0.10:(help&&isValid?0.30:0.14);
+    g.fillStyle=c;g.fillRect(x0,EYT,x1-x0,EYB-EYT);g.globalAlpha=1;
+    g.strokeStyle=c;g.lineWidth=(help&&isValid)?3.4:1.8;
+    g.setLineDash(isUsed?[4,4]:[]);
+    g.strokeRect(x0+1,EYT+3,x1-x0-2,EYB-EYT-6);g.setLineDash([]);
+    if(x1-x0>26){
+      g.fillStyle=c;g.font="700 "+(x1-x0>60?13:11)+"px sans-serif";g.textAlign="center";
+      g.fillText(z.t,(x0+x1)/2,EYB-12);
+    }
+    if(isUsed){
+      g.strokeStyle=c;g.lineWidth=2.6;
+      var mx=(x0+x1)/2,my=EYT+26;
+      g.beginPath();g.moveTo(mx-6,my);g.lineTo(mx-1,my+6);g.lineTo(mx+7,my-6);g.stroke();
+    }
+  });
+  g.restore();
+  g.strokeStyle="#1b2430";g.lineWidth=3;rr2(g,EX0,EYT,EW2,EYB-EYT,(EYB-EYT)/2);g.stroke();
+  g.fillStyle="#27508f";g.font="700 13px sans-serif";g.textAlign="right";
+  g.fillText("● 前",EX0-8,(EYT+EYB)/2+5);
+  g.fillStyle="#a8452f";g.textAlign="left";
+  g.fillText("後 ■",EX1+8,(EYT+EYB)/2+5);
+
+  /* 走査線 */
+  var sx=gx(G.sweep);
+  g.strokeStyle="rgba(255,255,255,.25)";g.lineWidth=13;
+  g.beginPath();g.moveTo(sx,EYT-8);g.lineTo(sx,EYB+8);g.stroke();
+  g.strokeStyle="#ffffff";g.lineWidth=3.4;
+  g.beginPath();g.moveTo(sx,EYT-8);g.lineTo(sx,EYB+8);g.stroke();
+  g.fillStyle="#ffffff";
+  g.beginPath();g.moveTo(sx,EYT-12);g.lineTo(sx-9,EYT-26);g.lineTo(sx+9,EYT-26);g.closePath();g.fill();
+  g.beginPath();g.moveTo(sx,EYB+12);g.lineTo(sx-9,EYB+26);g.lineTo(sx+9,EYB+26);g.closePath();g.fill();
+
+  /* お題カード */
+  if(t){
+    var cw=440,cx=LW/2-cw/2,cy=372;
+    g.fillStyle="rgba(255,255,255,.95)";g.strokeStyle=ZC[t.k]||"#1b2430";g.lineWidth=4;
+    rr2(g,cx,cy,cw,66,12);g.fill();g.stroke();
+    g.fillStyle="#57626e";g.font="700 12px sans-serif";g.textAlign="center";
+    g.fillText("いま発現させるもの",LW/2,cy+20);
+    g.fillStyle="#1b2430";g.font="700 24px sans-serif";
+    g.fillText(t.l,LW/2,cy+50);
+    if(help){
+      g.fillStyle=ZC[t.k]||"#1b2430";g.font="700 14px sans-serif";
+      g.fillText("→ "+t.h,LW/2,cy+86);
+    }
+  }
+
+  /* 判定表示 */
+  G.fx.forEach(function(f){
+    g.globalAlpha=clamp(f.t,0,1);
+    g.fillStyle=f.ok?"#8ee0b0":"#ff9b8a";
+    g.font="700 26px sans-serif";g.textAlign="center";
+    g.fillText(f.txt,clamp(gx(f.x),80,LW-80),EYT-42-(1.2-f.t)*20);
+    if(!f.ok&&f.aim!==null&&f.aim!==undefined){
+      g.strokeStyle="#8ee0b0";g.lineWidth=3;g.setLineDash([5,5]);
+      g.beginPath();g.moveTo(gx(f.aim),EYT-6);g.lineTo(gx(f.aim),EYB+6);g.stroke();g.setLineDash([]);
+      g.fillStyle="#8ee0b0";g.font="700 12px sans-serif";
+      g.fillText("ここだった",gx(f.aim),EYB+42);
+    }
+    g.globalAlpha=1;
+  });
+
+  /* 正常発生度 */
+  g.fillStyle="rgba(0,0,0,.4)";rr2(g,LW-250,16,230,24,8);g.fill();
+  g.fillStyle=G.hp>40?"#78d3a6":"#ff9b8a";
+  rr2(g,LW-247,19,clamp(G.hp/100,0,1)*224,18,6);g.fill();
+  g.strokeStyle="rgba(255,255,255,.6)";g.lineWidth=1.4;rr2(g,LW-250,16,230,24,8);g.stroke();
+  g.fillStyle="#fff";g.font="700 12px sans-serif";g.textAlign="left";
+  g.fillText("正常発生度",LW-243,33);
+  g.textAlign="right";g.fillStyle="#a9b6c2";g.font="12px sans-serif";
+  g.fillText("ミス "+G.misses+" / ゆるされる回数 "+DIFFG[G.diff].allow,LW-20,54);
+
+  g.fillStyle="rgba(255,255,255,.5)";g.font="12px sans-serif";g.textAlign="center";
+  g.fillText("画面をタップ / スペースキー / 下の「発現!」ボタン",LW/2,LH-14);
+  g.restore();
+}
+
+/* ---------- オーバーレイと操作 ---------- */
+function mkb(txt,cls,fn){
+  var b=document.createElement("button");b.className="btn "+(cls||"");b.textContent=txt;
+  b.addEventListener("click",fn);return b;
+}
+function larvaReport(){
+  var bad=0,i;for(i=0;i<14;i++){if(G.segs[i]===2){bad++;}}
+  return bad;
+}
+function updateG(){
+  var ov=$("ov"),box=$("ovBox"),c=$("gCtrl"),h=$("gHint");
+  c.innerHTML="";
+  if(G.phase==="title"){
+    ov.classList.remove("hide");
+    box.innerHTML='<h3>胚を組み立てろ</h3>'
+     +'<p>1つの卵から体節ができるまでを、5ステージで組み立てます。'
+     +'卵の上を<b>走査線</b>が往復します。お題の遺伝子が<b>はたらくべき場所</b>に線が来たしゅんかんに発現させてください。</p>'
+     +'<div class="lead">'
+     +'<b>ねらい方</b> 中心に近いほどパーフェクト<br>'
+     +'<b>失敗すると</b> その場所に変異が残り、できあがる幼虫の形に最後まで残る<br>'
+     +'<b>ステージ3・4</b> 一度使った場所は使えない。残りが減るほど難しくなる'
+     +'</div><div class="diffrow" id="dfr"></div>';
+    var dr=$("dfr");
+    DIFFG.forEach(function(d,i){
+      var b=document.createElement("button");b.textContent=d.k;
+      b.setAttribute("aria-pressed",i===G.diff);
+      b.addEventListener("click",function(){G.diff=i;
+        Array.prototype.forEach.call(dr.children,function(x,j){x.setAttribute("aria-pressed",j===i);});});
+      dr.appendChild(b);
+    });
+    h.textContent="むずかしさをえらんでスタート。「れんしゅう」では正しい場所が光り、ヒントも出ます。";
+    c.appendChild(mkb("スタート","primary",startGame));
+  }else if(G.phase==="play"){
+    ov.classList.add("hide");
+    h.textContent="走査線が正しい場所に来たしゅんかんに発現させよう。";
+    var fb=mkb("発現!","fire",function(){fire();});
+    fb.id="fireBtn";
+    c.appendChild(fb);
+  }else if(G.phase==="lvdone"){
+    ov.classList.remove("hide");
+    box.innerHTML='<h3>'+curLV().name+' クリア</h3>'
+     +'<div class="lead">'+curLV().pass+'</div>'
+     +'<p>ミス '+G.misses+' 回 ／ スコア <b>'+G.score+'</b> ／ 最高連続 <b>'+G.best+'</b></p>';
+    h.textContent="次のステージへ進もう。";
+    c.appendChild(mkb("次のステージへ","primary",function(){startLevel(G.lv+1);}));
+  }else if(G.phase==="fail"){
+    ov.classList.remove("hide");
+    box.innerHTML='<h3>発生が正しく進みませんでした</h3>'
+     +'<div class="lead"><b>何が起きた?</b><br>'+curLV().fail+'</div>'
+     +'<p>ミス '+G.misses+' 回(ゆるされるのは '+DIFFG[G.diff].allow+' 回まで)</p>';
+    h.textContent="同じステージをやり直そう。";
+    c.appendChild(mkb("このステージをやり直す","primary",function(){
+      G.segs=G.segSnap.slice();startLevel(G.lv);}));
+    c.appendChild(mkb("最初から","sub",function(){resetSegs();setPhase("title");}));
+  }else if(G.phase==="clear"){
+    ov.classList.remove("hide");
+    var bad=larvaReport();
+    var rank=bad===0?"完璧な発生":bad<=2?"ほぼ正常":bad<=5?"変異のある個体":"大きく変形した個体";
+    box.innerHTML='<h3>幼虫ができあがりました</h3>'
+     +'<p>変異のある体節 <b>'+bad+' / 14</b> ─ 判定:<b>'+rank+'</b><br>'
+     +'スコア <b style="font-size:1.25rem">'+G.score+'</b> ／ 最高連続 <b>'+G.best+'</b></p>'
+     +'<div class="lead">きみがたどった順番:<br>'
+     +'① 母性因子が前後の軸を決める → ② ギャップ遺伝子がおおまかに区切る → '
+     +'③ ペアルール遺伝子が1つおきの縞をつくる → ④ セグメントポラリティ遺伝子が体節の中を分ける → '
+     +'⑤ ホメオティック遺伝子が体節の性質を決める<br><br>'
+     +'途中でついた変異が最後まで残ったのは、<b>上位の遺伝子のはたらきの上に下位の遺伝子がはたらく</b>からです。'
+     +'これが、1つの卵から複雑な体ができるしくみです。</div>';
+    h.textContent="もう一度あそべます。";
+    c.appendChild(mkb("もう一度あそぶ","primary",function(){resetSegs();setPhase("title");}));
+  }
+}
+function updateHud(){
+  $("gStage").textContent=(G.lv+1)+" / "+LV.length;
+  $("gTask").textContent=(G.phase==="play")?((G.ti+1)+" / "+curLV().tasks.length):"— / —";
+  $("gHp").textContent=Math.max(0,Math.round(G.hp));
+  $("gCombo").textContent=G.combo;
+  $("gScore").textContent=G.score;
+}
+
+/* ===================== 共通 ===================== */
+document.querySelectorAll("nav.tabs button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll("nav.tabs button").forEach(function(x){x.setAttribute("aria-selected","false");});
+    b.setAttribute("aria-selected","true");
+    ["fig","game","obs"].forEach(function(k){$("panel-"+k).classList.toggle("on",k===b.dataset.tab);});
+    if(b.dataset.tab==="game"){fit();}
+  });
+});
+(function(){
+  var sb=$("stagebar");
+  STAGES.forEach(function(s,i){
+    var b=document.createElement("button");
+    b.innerHTML="<b>段階"+(i+1)+" "+s.t+"</b>"+s.s;
+    b.setAttribute("aria-pressed",i===0);
+    b.addEventListener("click",function(){F.stage=i;F.sel=null;renderFig();});
+    sb.appendChild(b);
+  });
+})();
+$("prevS").addEventListener("click",function(){if(F.stage>0){F.stage--;F.sel=null;renderFig();}});
+$("nextS").addEventListener("click",function(){if(F.stage<STAGES.length-1){F.stage++;F.sel=null;renderFig();}});
+$("mLearn").addEventListener("click",function(){setMode("learn");});
+$("mTest").addEventListener("click",function(){setMode("test");});
+$("resetQuiz").addEventListener("click",function(){
+  quizS={ans:{},correct:0,total:0};updScore();
+  $("qOpts").innerHTML="";$("judge").textContent="";$("qDesc").textContent="";
+  $("qPrompt").textContent="図の番号をタップして、その名前を答えよう。";
+  F.sel=null;renderFig();
+});
+
+function fit(){
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+  var w=cv.clientWidth||LW;
+  cv.width=Math.max(1,Math.round(w*dpr));
+  cv.height=Math.max(1,Math.round(w*dpr*LH/LW));
+  VS=cv.width/LW;
+  ctx.setTransform(VS,0,0,VS,0,0);
+}
+window.addEventListener("resize",fit);
+
+buildStageIndex();renderFig();updScore();fit();setPhase("title");
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
