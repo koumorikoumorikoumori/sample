@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ハーディ・ワインベルグの法則|計算演習・ステップ図解(高校生物)</title>
+<style>
+:root{
+  --paper:#eceff3;
+  --card:#ffffff;
+  --ink:#17202a;
+  --sub:#55606c;
+  --line:#c2cbd5;
+  --line2:#dde3ea;
+  --indigo:#27498a;      /* 対立遺伝子A */
+  --amber:#a3600f;       /* 対立遺伝子a */
+  --teal:#1b6a63;        /* ヘテロ Aa */
+  --ok:#166745;
+  --ng:#94282a;
+  --focus:#0b63c5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px;line-height:1.75;-webkit-text-size-adjust:100%;
+}
+.f{font-family:"Times New Roman","Yu Mincho",serif;font-size:1.08em;letter-spacing:.02em}
+.wrap{max-width:1160px;margin:0 auto;padding:12px 12px 48px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card h2{font-size:1.04rem;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.note{font-size:.86rem;color:var(--sub)}
+
+header.head{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:12px}
+header.head .eyebrow{font-size:.78rem;letter-spacing:.18em;color:var(--sub);margin:0 0 4px}
+header.head h1{font-size:1.3rem;margin:0 0 4px;letter-spacing:.02em}
+header.head p{margin:0;font-size:.9rem;color:var(--sub)}
+
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick button{
+  flex:1 1 220px;min-height:60px;padding:8px 12px;text-align:left;
+  font-size:.95rem;font-weight:700;font-family:inherit;line-height:1.4;
+  background:var(--card);color:var(--sub);border:2px solid var(--line);border-radius:10px;cursor:pointer;
+}
+.pick button b{display:block;font-size:1rem;color:var(--ink)}
+.pick button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pick button[aria-pressed="true"] b{color:#fff}
+
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.btn{min-height:52px;padding:10px 20px;font-size:1rem;font-weight:700;font-family:inherit;
+  background:var(--ink);color:#fff;border:none;border-radius:10px;cursor:pointer}
+.btn.sub{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn.small{min-height:46px;padding:6px 14px;font-size:.92rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.mode{margin-left:auto;display:flex;gap:8px}
+.mode button{min-height:48px;padding:6px 14px;font-size:.92rem;font-weight:700;font-family:inherit;
+  background:var(--paper);color:var(--ink);border:2px solid var(--line);border-radius:10px;cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+
+.prob{background:#f4f7fa;border:1px solid var(--line);border-left:6px solid var(--ink);border-radius:0 10px 10px 0;padding:12px 14px;font-size:1rem}
+.prob .lbl{display:inline-block;font-size:.76rem;font-weight:700;letter-spacing:.12em;background:var(--ink);color:#fff;padding:1px 10px;border-radius:999px;margin-bottom:6px}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.figwrap{position:sticky;top:8px}
+@media (max-width:900px){.figwrap{position:static}}
+svg{display:block;width:100%;height:auto;touch-action:manipulation}
+
+/* 進捗 */
+.prog{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.prog .track{flex:1;height:12px;background:var(--line2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.prog .fill{height:100%;background:var(--ink);width:0%}
+.prog .txt{font-weight:700;font-size:.9rem;white-space:nowrap}
+
+/* ステップ */
+.step{border:2px solid var(--line);border-radius:12px;padding:0;margin-bottom:10px;background:var(--card);overflow:hidden}
+.step.active{border-color:var(--ink);box-shadow:0 2px 0 var(--ink)}
+.step.locked{opacity:.55}
+.step .sh{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:#f4f7fa;border-bottom:1px solid var(--line2)}
+.step.locked .sh{background:#f7f8fa}
+.step .num{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:1rem;border:2px solid var(--ink);background:#fff}
+.step.done .num{background:var(--ok);border-color:var(--ok);color:#fff}
+.step.seen .num{background:var(--sub);border-color:var(--sub);color:#fff}
+.step.active .num{background:var(--ink);color:#fff}
+.step .sh h3{margin:4px 0 0;font-size:1rem}
+.step .sb{padding:12px}
+.step .lead{margin:0 0 8px;font-size:.95rem}
+.eq{background:#f2f5f8;border-left:5px solid var(--ink);padding:8px 12px;margin:8px 0;border-radius:0 8px 8px 0}
+.hint{background:#fff8e8;border:1px solid #d9b877;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:.9rem}
+
+.ins{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:10px 0}
+.ins label{display:block;font-size:.9rem;font-weight:700;margin-bottom:4px}
+.ins .iw{display:flex;align-items:center;gap:6px}
+.ins input{width:100%;min-height:50px;font-size:1.1rem;padding:4px 10px;border:2px solid var(--line);border-radius:8px;
+  font-family:"Times New Roman",serif;background:#fff;color:var(--ink)}
+.ins input.ok{border-color:var(--ok);background:#eef6f2}
+.ins input.ng{border-color:var(--ng);background:#faeeee}
+.ins .unit{font-weight:700;font-size:.95rem;white-space:nowrap}
+.mark{font-weight:700;font-size:1rem;margin-left:2px}
+.judge{font-weight:700;margin:6px 0 0}
+.judge.o{color:var(--ok)}
+.judge.x{color:var(--ng)}
+.after{background:#eef4f1;border:1px solid #b9d3c8;border-radius:8px;padding:8px 12px;margin-top:10px;font-size:.93rem}
+.doneline{font-size:.93rem;margin:0;padding:8px 12px}
+.doneline b{font-family:"Times New Roman",serif;font-size:1.05em}
+
+table.sum{border-collapse:collapse;width:100%;font-size:.92rem;margin-top:8px}
+table.sum th,table.sum td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+table.sum th{background:#f2f5f8;white-space:nowrap}
+ul.tips{font-size:.94rem;padding-left:1.2em;margin:6px 0}
+details.safety{background:#fff8e8;border:1px solid #d9b877;border-radius:10px;padding:10px 14px}
+details.safety summary{font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center}
+details.safety ul{margin:6px 0 0;padding-left:1.2em;font-size:.92rem}
+.new{animation:fade .4s ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="head">
+  <p class="eyebrow">高等学校 生物 ─ 生物の進化 / 遺伝子頻度の変化</p>
+  <h1>ハーディ・ワインベルグの法則 ─ 計算演習・ステップ図解</h1>
+  <p>1ステップずつ答えを入れると、右の図が描き足されていきます。式と図を対応させながら解こう。</p>
+</header>
+
+<div class="card">
+  <h2>問題タイプを選ぶ</h2>
+  <div class="pick">
+    <button data-type="A" aria-pressed="true"><b>タイプ1 潜性形質の割合から</b>aa の割合 → q → p → 各遺伝子型頻度</button>
+    <button data-type="B" aria-pressed="false"><b>タイプ2 個体数から数える</b>遺伝子型の個体数 → 対立遺伝子の数 → p, q</button>
+    <button data-type="C" aria-pressed="false"><b>タイプ3 まれな形質と保因者</b>「○人に1人」→ q → 保因者 Aa の割合</button>
+  </div>
+  <div class="bar">
+    <button class="btn" id="newq">別の問題にする</button>
+    <button class="btn sub" id="restart">最初のステップに戻る</button>
+    <div class="mode">
+      <button id="mStep" aria-pressed="true">ステップで解く</button>
+      <button id="mSelf" aria-pressed="false">解説を隠して自力で解く</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="prob">
+    <span class="lbl" id="probTag">問題</span>
+    <div id="probText"></div>
+  </div>
+  <p class="note" style="margin:8px 0 0">答えは数値だけを入力します(例:0.4、48)。四捨五入した値でも、ほぼ合っていれば正解になります。</p>
+</div>
+
+<div class="split">
+  <!-- 左:ステップ -->
+  <div>
+    <div class="card">
+      <div class="prog">
+        <span class="txt" id="progTxt">STEP 1 / 5</span>
+        <span class="track"><span class="fill" id="progFill"></span></span>
+        <span class="txt" id="scoreTxt">正解 0</span>
+      </div>
+      <div id="steps"></div>
+      <div id="selfArea" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- 右:図 -->
+  <div class="figwrap">
+    <div class="card">
+      <h2 id="figTitle">ステップ図解</h2>
+      <svg id="fig" viewBox="0 0 620 520" role="img" aria-labelledby="figDesc"></svg>
+      <p id="figDesc" class="note" style="margin:8px 0 0"></p>
+    </div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="card">
+    <h2>グラフ:a の頻度 q と「発症する個体 aa」「保因者 Aa」</h2>
+    <svg id="graph" viewBox="0 0 560 370" role="img" aria-label="qに対するq²と2pqのグラフ"></svg>
+    <p class="note" id="gRead"></p>
+    <p class="note">点線■ = aa(q²)、破線▲ = Aa(2pq)。q が小さいほど、aa より Aa のほうが圧倒的に多くなります。</p>
+  </div>
+  <div class="card">
+    <h2>計算で使う式のまとめ</h2>
+    <div class="eq f">p + q = 1</div>
+    <div class="eq f">AA : Aa : aa = p² : 2pq : q²</div>
+    <div class="eq f">p² + 2pq + q² = (p + q)² = 1</div>
+    <div class="eq f">p′ = p² + ½ × 2pq = p(p + q) = p</div>
+    <table class="sum">
+      <tr><th>記号</th><td>意味</td></tr>
+      <tr><th class="f">p</th><td>顕性(優性)の対立遺伝子 A の遺伝子頻度</td></tr>
+      <tr><th class="f">q</th><td>潜性(劣性)の対立遺伝子 a の遺伝子頻度</td></tr>
+      <tr><th class="f">2N</th><td>N 個体(二倍体)がもつ対立遺伝子の総数</td></tr>
+    </table>
+    <h3 style="font-size:.95rem;margin:14px 0 4px">計算するときの前提(5条件)</h3>
+    <ul class="tips">
+      <li>個体数が十分に大きい(遺伝的浮動が無視できる)</li>
+      <li>突然変異が起こらない</li>
+      <li>自然選択が働かない(生存率・繁殖力が等しい)</li>
+      <li>個体の移入・移出がない</li>
+      <li>自由な交配(任意交配)が行われる</li>
+    </ul>
+    <p class="note">実際の集団ではこれらが完全に成り立つことはまれです。計算結果は「進化が起こらないと仮定したときの値」であり、実測値とのずれを調べることで、どの条件がくずれているかを考える手がかりになります。</p>
+  </div>
+</div>
+
+<footer>
+  <details class="safety">
+    <summary>⚠ 実習・調査とあわせて行うときの安全上の注意</summary>
+    <ul>
+      <li><b>ビーズ・豆・おはじきで遺伝子プールを模擬する場合</b>:小さい部品は口や鼻に入れない(誤飲・窒息の危険)。使用後は必ず手を洗う。</li>
+      <li>豆類・ナッツ類を教材に使う場合は、<b>食物アレルギー</b>のある生徒がいないか事前に確認する。教材の豆は食べない。</li>
+      <li>床に落ちたビーズは滑って転倒の原因になる。落としたらすぐ拾い、実習後に数がそろっているか確認する。</li>
+      <li><b>ヒトの形質を題材にする場合</b>:個人や家族の形質を答えたくない生徒に無理をさせない。特定の形質や疾患を優劣で語らない。</li>
+      <li>この教材自体は計算演習なので、薬品・火気・電気器具は使用しません。実験と組み合わせる場合は、その実験の注意事項に従ってください。</li>
+    </ul>
+  </details>
+  <p class="note" style="text-align:center;margin-top:12px">高等学校 生物「生物の進化」/ ハーディ・ワインベルグの法則 ─ 授業用インタラクティブ教材</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+var $=function(id){return document.getElementById(id);};
+var f2=function(x){return (Math.round(x*100)/100).toFixed(2);};
+var f4=function(x){return (Math.round(x*10000)/10000).toFixed(4);};
+var pcs=function(x,d){return (Math.round(x*100*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);};
+function ri(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+/* ================= 問題生成 ================= */
+var TYPE="A", PROB=null;
+var st={idx:0,st:[],correct:0,mode:"step"};
+
+function makeA(){
+  var q2=pick([0.04,0.09,0.16,0.25,0.36,0.49,0.64]);
+  var q=Math.round(Math.sqrt(q2)*100)/100, p=Math.round((1-q)*100)/100;
+  var AA=p*p, Aa=2*p*q;
+  return {
+    fig:"A", p:p, q:q, q2:q2,
+    tag:"タイプ1 潜性形質の割合から",
+    text:'ある生物の大きな集団を調べたところ、潜性形質を示す個体(遺伝子型 aa)が全体の <b>'+(q2*100).toFixed(0)+' %</b> であった。'
+        +'この集団ではハーディ・ワインベルグの法則が成り立つものとして、遺伝子頻度と各遺伝子型の頻度を求めよ。',
+    steps:[
+      {t:"潜性形質の割合を小数で表す",
+       lead:"潜性形質が現れるのは aa の個体だけです。したがって「潜性形質の個体の割合」が、そのまま遺伝子型 aa の頻度 = q² にあたります。まず % を小数に直します。",
+       eq:"aa の頻度 = q² = "+(q2*100).toFixed(0)+" ÷ 100",
+       hint:"% の値を 100 で割ると小数になります。",
+       ins:[{lab:"q²(小数)",ans:q2,tol:0.005,u:"",ph:"0.16"}]},
+      {t:"q(a の遺伝子頻度)を求める",
+       lead:"右の図で、aa の領域は面積が q² の正方形です。正方形の面積が q² なら、その1辺の長さが q になります。つまり q² の平方根が q です。",
+       eq:"q = √(q²) = √"+q2.toFixed(2),
+       hint:"2乗して "+q2.toFixed(2)+" になる数を考えます。",
+       ins:[{lab:"q(小数)",ans:q,tol:0.011,u:"",ph:"0.4"}]},
+      {t:"p(A の遺伝子頻度)を求める",
+       lead:"対立遺伝子は A と a の2種類だけなので、遺伝子頻度の合計は 1 です。ここから p が決まり、図の正方形の残りの辺の長さも決まります。",
+       eq:"p + q = 1 より p = 1 − q = 1 − "+f2(q),
+       hint:"1 から q を引きます。",
+       ins:[{lab:"p(小数)",ans:p,tol:0.011,u:"",ph:"0.6"}]},
+      {t:"AA と Aa の頻度を求める",
+       lead:"配偶子がランダムに受精するので、遺伝子型の頻度は面積の積で決まります。Aa は「A の卵×a の精子」と「a の卵×A の精子」の2通りがあるので 2 倍になります。",
+       eq:"AA = p² = "+f2(p)+" × "+f2(p)+"   Aa = 2pq = 2 × "+f2(p)+" × "+f2(q),
+       hint:"答えは % で入力します。小数に 100 を掛けます。",
+       ins:[{lab:"AA の割合",ans:AA*100,tol:0.6,u:"%",ph:"36"},
+            {lab:"Aa の割合",ans:Aa*100,tol:0.6,u:"%",ph:"48"}]},
+      {t:"合計が 100 % になるか検算する",
+       lead:"3つの遺伝子型頻度を足すと必ず 1(100 %)になります。これは (p + q)² を展開した式そのものです。ここがずれていたら計算のどこかを間違えています。",
+       eq:"p² + 2pq + q² = (p + q)² = 1",
+       hint:"AA + Aa + aa を足します。",
+       ins:[{lab:"3つの合計",ans:100,tol:0.6,u:"%",ph:"100"}],
+       after:"次世代で A がもつ割合は p′ = p² + ½ × 2pq = p(p + q) = <b>"+f2(p)+"</b> となり、親世代と同じです。5つの条件が保たれるかぎり、遺伝子頻度は世代を重ねても変化しません(ハーディ・ワインベルグ平衡)。"}
+    ]
+  };
+}
+
+function makeB(){
+  var N=100,nAA,nAa,naa;
+  do{ nAA=2*ri(8,26); nAa=2*ri(10,28); naa=N-nAA-nAa; }while(naa<8||naa>60);
+  var Acnt=2*nAA+nAa, acnt=2*naa+nAa, p=Acnt/(2*N), q=1-p;
+  var expAa=2*p*q*N, diff=Math.abs(expAa-nAa);
+  var comment = diff<=0.05*N
+    ? "実際の Aa("+nAa+" 個体)と期待値("+expAa.toFixed(1)+" 個体)はほぼ一致しています。この集団はハーディ・ワインベルグ平衡に近い状態にあるとみてよいでしょう。"
+    : "実際の Aa("+nAa+" 個体)と期待値("+expAa.toFixed(1)+" 個体)にはずれがあります。ずれが偶然の範囲を超えているなら、5つの条件のどれかが成り立っていない可能性があります(ただし1回の調査だけでは断定できません)。";
+  return {
+    fig:"B", p:p, q:q, N:N, nAA:nAA, nAa:nAa, naa:naa, Acnt:Acnt, acnt:acnt, expAa:expAa,
+    tag:"タイプ2 個体数から数える",
+    text:'ある動物の集団 <b>'+N+' 個体</b>について遺伝子型を調べたところ、'
+        +'<b>AA が '+nAA+' 個体、Aa が '+nAa+' 個体、aa が '+naa+' 個体</b>であった。'
+        +'この集団の遺伝子頻度 p、q を求め、ハーディ・ワインベルグ平衡にあるといえるかを検討せよ。',
+    steps:[
+      {t:"集団がもつ対立遺伝子の総数を求める",
+       lead:"この生物は二倍体なので、1個体は同じ遺伝子座に対立遺伝子を 2 個もっています。遺伝子頻度は「個体数の割合」ではなく「対立遺伝子の数の割合」で考えます。",
+       eq:"対立遺伝子の総数 = 2N = 2 × "+N,
+       hint:"個体数を 2 倍します。",
+       ins:[{lab:"対立遺伝子の総数",ans:2*N,tol:0.5,u:"個",ph:"200"}]},
+      {t:"A の数を数える",
+       lead:"AA の個体は A を 2 個、Aa の個体は A を 1 個もちます。aa の個体は A をもちません。個体数から対立遺伝子の数へ数え直します。",
+       eq:"A の数 = 2 × "+nAA+" + 1 × "+nAa,
+       hint:"AA の個体数を 2 倍して、Aa の個体数を足します。",
+       ins:[{lab:"A の数",ans:Acnt,tol:0.5,u:"個",ph:"—"}]},
+      {t:"p(A の遺伝子頻度)を求める",
+       lead:"A の数を対立遺伝子の総数で割ると、A の遺伝子頻度 p が求められます。",
+       eq:"p = A の数 ÷ 2N = "+Acnt+" ÷ "+(2*N),
+       hint:"割り算の結果を小数で答えます。",
+       ins:[{lab:"p(小数)",ans:p,tol:0.006,u:"",ph:"0.55"}]},
+      {t:"q(a の遺伝子頻度)を求める",
+       lead:"a の数(2 × aa の数 + Aa の数 = "+acnt+" 個)を 2N で割っても、1 − p として求めても、同じ値になります。",
+       eq:"q = 1 − p = 1 − "+f2(p)+"   (= "+acnt+" ÷ "+(2*N)+")",
+       hint:"1 から p を引きます。",
+       ins:[{lab:"q(小数)",ans:q,tol:0.006,u:"",ph:"0.45"}]},
+      {t:"平衡かどうかを確かめる",
+       lead:"もしこの集団がハーディ・ワインベルグ平衡にあるなら、Aa の個体数は 2pq × N と期待されます。実際に調べた値と比べてみましょう。",
+       eq:"期待される Aa の個体数 = 2pq × N = 2 × "+f2(p)+" × "+f2(q)+" × "+N,
+       hint:"2pq を計算して、個体数 N を掛けます。",
+       ins:[{lab:"期待される Aa の個体数",ans:expAa,tol:1.2,u:"個体",ph:"—"}],
+       after:comment}
+    ]
+  };
+}
+
+function makeC(){
+  var d=pick([{n:400,q:0.05},{n:2500,q:0.02},{n:10000,q:0.01}]);
+  var q=d.q, q2=q*q, p=1-q, het=2*p*q, ratio=2*p/q;
+  return {
+    fig:"A", p:p, q:q, q2:q2, schematic:true,
+    tag:"タイプ3 まれな形質と保因者",
+    text:'ある生物の大きな集団では、潜性形質を示す個体が <b>'+d.n.toLocaleString()+' 個体に 1 個体</b>の割合で見られる。'
+        +'ハーディ・ワインベルグの法則が成り立つものとして、a の遺伝子頻度と、外見にはあらわれない保因者(遺伝子型 Aa)の割合を求めよ。',
+    steps:[
+      {t:"潜性形質の割合を小数で表す",
+       lead:"「"+d.n.toLocaleString()+" 個体に 1 個体」は 1 ÷ "+d.n.toLocaleString()+" のことです。この値が遺伝子型 aa の頻度、つまり q² にあたります。",
+       eq:"q² = 1 ÷ "+d.n.toLocaleString(),
+       hint:"1 を "+d.n.toLocaleString()+" で割ります。小数点以下の桁数に注意。",
+       ins:[{lab:"q²(小数)",ans:q2,tol:q2*0.06,u:"",ph:f4(q2)}]},
+      {t:"q(a の遺伝子頻度)を求める",
+       lead:"q² の平方根が q です。図では、面積 q² の正方形の 1 辺が q にあたります。",
+       eq:"q = √(q²) = √"+f4(q2),
+       hint:"2乗して "+f4(q2)+" になる数を考えます。",
+       ins:[{lab:"q(小数)",ans:q,tol:q*0.06,u:"",ph:f2(q)}]},
+      {t:"p(A の遺伝子頻度)を求める",
+       lead:"潜性の対立遺伝子がまれなので、顕性の対立遺伝子 A の頻度は 1 に近い値になります。",
+       eq:"p = 1 − q = 1 − "+q,
+       hint:"1 から q を引きます。",
+       ins:[{lab:"p(小数)",ans:p,tol:0.006,u:"",ph:f2(p)}]},
+      {t:"保因者 Aa の割合を求める",
+       lead:"Aa の個体は A をもつため外見は顕性形質ですが、a を次世代に伝えます。これを保因者といいます。",
+       eq:"Aa = 2pq = 2 × "+f2(p)+" × "+q,
+       hint:"答えは % です。2pq を計算して 100 を掛けます。",
+       ins:[{lab:"Aa の割合",ans:het*100,tol:Math.max(0.05,het*100*0.05),u:"%",ph:pcs(het,2)}]},
+      {t:"保因者は発症個体の何倍かを求める",
+       lead:"保因者の割合 2pq を、潜性形質を示す個体の割合 q² で割ると、その比が求められます。p ≒ 1 なので、この比はおよそ 2 ÷ q になります。",
+       eq:"Aa ÷ aa = 2pq ÷ q² = 2p ÷ q",
+       hint:"2 × p を q で割ります。",
+       ins:[{lab:"およそ何倍か",ans:ratio,tol:Math.max(2,ratio*0.06),u:"倍",ph:Math.round(ratio)+""}],
+       after:"潜性形質を示す個体は "+d.n.toLocaleString()+" 個体に 1 個体ですが、保因者は約 "+pcs(het,2)+" %(およそ "+Math.round(1/het)+" 個体に 1 個体)もいます。"
+            +"<b>まれな潜性形質では、発症する個体よりも保因者のほうが圧倒的に多い</b>ことが、この計算からわかります。"}
+    ]
+  };
+}
+
+function newProblem(){
+  PROB = (TYPE==="A")?makeA():(TYPE==="B")?makeB():makeC();
+  st={idx:0,st:PROB.steps.map(function(){return "todo";}),correct:0,mode:st.mode};
+  $("probTag").textContent=PROB.tag;
+  $("probText").innerHTML=PROB.text;
+  render();
+}
+
+/* ================= 描画:ステップ ================= */
+function render(){
+  var n=PROB.steps.length;
+  $("progTxt").textContent = (st.idx>=n) ? "完了" : ("STEP "+(st.idx+1)+" / "+n);
+  $("progFill").style.width = (100*Math.min(st.idx,n)/n)+"%";
+  $("scoreTxt").textContent = "正解 "+st.correct+" / "+n;
+
+  var self = (st.mode==="self");
+  $("steps").style.display = self?"none":"";
+  $("selfArea").style.display = self?"":"none";
+  if(self){ renderSelf(); } else { renderSteps(); }
+  drawFig(); drawGraph();
+}
+
+function renderSteps(){
+  var box=$("steps"); box.innerHTML="";
+  PROB.steps.forEach(function(s,i){
+    var d=document.createElement("div");
+    var stt=st.st[i];
+    var cls="step";
+    if(i===st.idx){ cls+=" active"; }
+    else if(i>st.idx){ cls+=" locked"; }
+    if(stt==="done"){ cls+=" done"; }
+    if(stt==="seen"){ cls+=" seen"; }
+    d.className=cls;
+    var badge = (stt==="done")?"✓":(stt==="seen")?"見":(i+1);
+    var h='<div class="sh"><div class="num">'+badge+'</div><div><h3>STEP '+(i+1)+'  '+s.t+'</h3></div></div>';
+    if(i<st.idx){
+      var vals=s.ins.map(function(x){return x.lab+" = <b>"+fmtAns(x)+"</b>"+(x.u||"");}).join(" / ");
+      h+='<p class="doneline">'+vals+(stt==="seen"?'  <span class="note">(答えを見た)</span>':'')+'</p>';
+      if(s.after && i===PROB.steps.length-1){ h+='<div class="sb" style="padding-top:0"><div class="after">'+s.after+'</div></div>'; }
+    }else if(i===st.idx){
+      h+='<div class="sb">';
+      h+='<p class="lead">'+s.lead+'</p>';
+      h+='<div class="eq f">'+s.eq+'</div>';
+      h+='<div class="ins">';
+      s.ins.forEach(function(x,j){
+        h+='<div><label for="in'+i+'_'+j+'">'+x.lab+'</label><div class="iw">'
+          +'<input id="in'+i+'_'+j+'" type="text" inputmode="decimal" autocomplete="off" placeholder="'+(x.ph||"")+'">'
+          +(x.u?'<span class="unit">'+x.u+'</span>':'')+'<span class="mark" id="mk'+i+'_'+j+'"></span></div></div>';
+      });
+      h+='</div>';
+      h+='<button class="btn small" id="chk">答え合わせ</button> '
+        +'<button class="btn sub small" id="hintBtn">ヒント</button> '
+        +'<button class="btn sub small" id="showBtn">答えを見る</button>';
+      h+='<div class="hint" id="hintBox" style="display:none">'+s.hint+'</div>';
+      h+='<p class="judge" id="judge"></p>';
+      h+='</div>';
+    }
+    d.innerHTML=h;
+    box.appendChild(d);
+  });
+
+  if(st.idx<PROB.steps.length){
+    $("chk").addEventListener("click",function(){checkStep(st.idx);});
+    $("hintBtn").addEventListener("click",function(){
+      var b=$("hintBox"); b.style.display=(b.style.display==="none")?"":"none";
+    });
+    $("showBtn").addEventListener("click",function(){showAnswer(st.idx);});
+    var s=PROB.steps[st.idx];
+    s.ins.forEach(function(x,j){
+      var el=$("in"+st.idx+"_"+j);
+      el.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); checkStep(st.idx); } });
+    });
+    var first=$("in"+st.idx+"_0"); if(first && st.idx>0){ first.focus({preventScroll:true}); }
+  }else{
+    var fin=document.createElement("div");
+    fin.className="after";
+    fin.innerHTML="<b>すべてのステップが終わりました。</b> 正解 "+st.correct+" / "+PROB.steps.length
+      +"。「別の問題にする」で数値を変えて、もう一度やってみましょう。";
+    box.appendChild(fin);
+  }
+}
+
+function fmtAns(x){
+  if(x.u==="%"){ return (Math.abs(x.ans-Math.round(x.ans))<0.005)?x.ans.toFixed(0):x.ans.toFixed(2); }
+  if(x.u==="個"||x.u==="個体"||x.u==="倍"){ return (Math.abs(x.ans-Math.round(x.ans))<0.05)?Math.round(x.ans).toString():x.ans.toFixed(1); }
+  return (x.ans<0.01)? f4(x.ans) : f2(x.ans);
+}
+
+function checkStep(i){
+  var s=PROB.steps[i], all=true;
+  s.ins.forEach(function(x,j){
+    var el=$("in"+i+"_"+j), v=parseFloat(String(el.value).replace(/[%,\s]/g,""));
+    var ok=isFinite(v)&&Math.abs(v-x.ans)<=x.tol;
+    el.classList.remove("ok","ng"); el.classList.add(ok?"ok":"ng");
+    $("mk"+i+"_"+j).textContent = ok?"○":"✕";
+    if(!ok){ all=false; }
+  });
+  var jd=$("judge");
+  if(all){
+    jd.textContent="○ 正解  次のステップへ進みます"; jd.className="judge o";
+    st.st[i]="done"; st.correct++; st.idx=i+1;
+    setTimeout(render,450);
+  }else{
+    jd.textContent="✕ ✕印のところをもう一度計算しよう(ヒントも使えます)"; jd.className="judge x";
+  }
+}
+
+function showAnswer(i){
+  var s=PROB.steps[i];
+  s.ins.forEach(function(x,j){ $("in"+i+"_"+j).value=fmtAns(x); $("in"+i+"_"+j).classList.add("ok"); $("mk"+i+"_"+j).textContent="答"; });
+  st.st[i]="seen"; st.idx=i+1;
+  setTimeout(render,450);
+}
+
+/* ================= 自力モード ================= */
+function renderSelf(){
+  var box=$("selfArea"); var h='<p class="lead" style="font-weight:700">解説を見ずに、すべての値を求めよう。</p><div class="ins">';
+  PROB.steps.forEach(function(s,i){
+    s.ins.forEach(function(x,j){
+      h+='<div><label for="sf'+i+'_'+j+'">('+(i+1)+') '+x.lab+'</label><div class="iw">'
+        +'<input id="sf'+i+'_'+j+'" type="text" inputmode="decimal" autocomplete="off">'
+        +(x.u?'<span class="unit">'+x.u+'</span>':'')+'<span class="mark" id="sm'+i+'_'+j+'"></span></div></div>';
+    });
+  });
+  h+='</div><button class="btn" id="gradeAll">まとめて採点する</button> '
+    +'<button class="btn sub" id="toStep">ステップ解説に切り替える</button>'
+    +'<p class="judge" id="selfJudge"></p>';
+  box.innerHTML=h;
+  $("gradeAll").addEventListener("click",gradeAll);
+  $("toStep").addEventListener("click",function(){ setMode("step"); });
+}
+function gradeAll(){
+  var n=0,tot=0;
+  PROB.steps.forEach(function(s,i){
+    var all=true;
+    s.ins.forEach(function(x,j){
+      tot++;
+      var el=$("sf"+i+"_"+j), v=parseFloat(String(el.value).replace(/[%,\s]/g,""));
+      var ok=isFinite(v)&&Math.abs(v-x.ans)<=x.tol;
+      el.classList.remove("ok","ng"); el.classList.add(ok?"ok":"ng");
+      $("sm"+i+"_"+j).textContent=ok?"○":"✕";
+      if(ok){ n++; } else { all=false; }
+    });
+    st.st[i]=all?"done":"todo";
+  });
+  st.correct=st.st.filter(function(x){return x==="done";}).length;
+  st.idx=PROB.steps.length;
+  var jd=$("selfJudge");
+  jd.textContent="正解 "+n+" / "+tot+"(✕のところは、ステップ解説に切り替えて確かめよう)";
+  jd.className="judge "+((n===tot)?"o":"x");
+  $("progTxt").textContent="完了"; $("progFill").style.width="100%";
+  $("scoreTxt").textContent="正解 "+st.correct+" / "+PROB.steps.length;
+  drawFig(); drawGraph();
+}
+
+/* ================= 図(ステップ図解) ================= */
+var PAT='<defs>'
+ +'<pattern id="pA" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+ +'<rect width="9" height="9" fill="#dde5f4"/><line x1="0" y1="0" x2="0" y2="9" stroke="#27498a" stroke-width="2.6"/></pattern>'
+ +'<pattern id="pa" width="9" height="9" patternUnits="userSpaceOnUse">'
+ +'<rect width="9" height="9" fill="#f8e9cf"/><circle cx="4.5" cy="4.5" r="1.9" fill="#a3600f"/></pattern>'
+ +'<pattern id="pAa" width="9" height="9" patternUnits="userSpaceOnUse">'
+ +'<rect width="9" height="9" fill="#daece9"/><line x1="0" y1="0" x2="9" y2="0" stroke="#1b6a63" stroke-width="2.4"/></pattern>'
+ +'<pattern id="pQ" width="10" height="10" patternUnits="userSpaceOnUse">'
+ +'<rect width="10" height="10" fill="#eef1f4"/><line x1="0" y1="10" x2="10" y2="0" stroke="#c2cbd5" stroke-width="1.6"/></pattern>'
+ +'<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
+ +'<path d="M0,0 L10,5 L0,10 z" fill="#55606c"/></marker></defs>';
+
+function T(x,y,s,o){o=o||{};return '<text x="'+x+'" y="'+y+'" font-size="'+(o.s||14)+'" fill="'+(o.c||"#17202a")+'" '
+ +'text-anchor="'+(o.a||"start")+'" font-weight="'+(o.w||"400")+'" '
+ +(o.r?'transform="rotate('+o.r+','+x+','+y+')" ':'')
+ +(o.f?'font-family=\'Times New Roman,serif\' ':'font-family=\'Hiragino Kaku Gothic ProN,Yu Gothic,Noto Sans JP,sans-serif\' ')
+ +'>'+s+'</text>';}
+function R(x,y,w,h,fill,stroke,sw){return '<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" fill="'+fill+'" stroke="'+(stroke||"none")+'" stroke-width="'+(sw||0)+'"/>';}
+
+function drawFig(){
+  if(PROB.fig==="A"){ drawFigA(); } else { drawFigB(); }
+}
+
+function drawFigA(){
+  var L=st.idx, p=PROB.p, q=PROB.q;
+  var qd=q, sch=false;
+  if(q<0.16){ qd=0.22; sch=true; }
+  var pd=1-qd;
+  var X=170,Y=120,S=300;
+  var sx=X+S*pd, sy=Y+S*pd, wq=S*qd, wp=S*pd;
+  var s='<svg>'; s=PAT;
+
+  s+=T(310,34,"集団全体の割合を「面積 1 の正方形」で表す",{a:"middle",w:"700",s:15});
+  s+=T(310,56,"横=卵の配偶子  縦=精子の配偶子",{a:"middle",s:12.5,c:"#55606c"});
+
+  /* 枠 */
+  s+=R(X,Y,S,S,"#ffffff","#17202a",2);
+
+  /* aa は最初から既知 */
+  s+=R(sx,sy,wq,wq,"url(#pa)","#a3600f",1.6);
+  /* 未確定領域 */
+  if(L<4){
+    s+=R(X,Y,S,wp,"url(#pQ)","#c2cbd5",1);
+    s+=R(X,sy,wp,wq,"url(#pQ)","#c2cbd5",1);
+    s+=T(X+wp/2, Y+wp/2+8, "?", {a:"middle",s:40,c:"#a7b2be",w:"700"});
+  }else{
+    s+=R(X,Y,wp,wp,"url(#pA)","#27498a",1.6);
+    s+=R(sx,Y,wq,wp,"url(#pAa)","#1b6a63",1.6);
+    s+=R(X,sy,wp,wq,"url(#pAa)","#1b6a63",1.6);
+    s+='<g class="new">';
+    if(wp>84){ s+=T(X+wp/2,Y+wp/2-2,"● AA",{a:"middle",w:"700",s:17})+T(X+wp/2,Y+wp/2+20,"p² = "+f4(p*p),{a:"middle",s:14,f:true}); }
+    if(wq>70&&wp>60){ s+=T(sx+wq/2,Y+wp/2-2,"▲ Aa",{a:"middle",w:"700",s:16})+T(sx+wq/2,Y+wp/2+18,"pq",{a:"middle",s:13,f:true}); }
+    if(wp>70&&wq>60){ s+=T(X+wp/2,sy+wq/2-2,"▲ Aa",{a:"middle",w:"700",s:16})+T(X+wp/2,sy+wq/2+18,"pq",{a:"middle",s:13,f:true}); }
+    s+='</g>';
+  }
+  /* aa ラベル */
+  var aaTxt = (L<1)? ((PROB.q2*100)<1? "= 与えられた割合" : "= "+(PROB.q2*100).toFixed(0)+" %") : ("q² = "+f4(PROB.q2));
+  if(wq>76){
+    s+=T(sx+wq/2, sy+wq/2-2, "■ aa", {a:"middle",w:"700",s:17});
+    s+=T(sx+wq/2, sy+wq/2+20, aaTxt, {a:"middle",s:13,f:true});
+  }else{
+    s+=T(sx+wq+8, sy+wq/2+4, "■ aa "+aaTxt, {s:13});
+  }
+
+  /* 分割線 */
+  if(L>=3){
+    s+='<g class="new">'+'<line x1="'+sx+'" y1="'+Y+'" x2="'+sx+'" y2="'+(Y+S)+'" stroke="#17202a" stroke-width="2"/>'
+      +'<line x1="'+X+'" y1="'+sy+'" x2="'+(X+S)+'" y2="'+sy+'" stroke="#17202a" stroke-width="2"/></g>';
+  }
+
+  /* 上辺(卵)の目盛り */
+  if(L>=2){
+    s+='<g class="new">';
+    s+='<line x1="'+sx+'" y1="'+(Y-14)+'" x2="'+(X+S)+'" y2="'+(Y-14)+'" stroke="#a3600f" stroke-width="3"/>';
+    s+='<line x1="'+sx+'" y1="'+(Y-20)+'" x2="'+sx+'" y2="'+(Y-8)+'" stroke="#a3600f" stroke-width="3"/>';
+    s+='<line x1="'+(X+S)+'" y1="'+(Y-20)+'" x2="'+(X+S)+'" y2="'+(Y-8)+'" stroke="#a3600f" stroke-width="3"/>';
+    s+=T(sx+wq/2, Y-24, "a: q = "+(q<0.01?f4(q):f2(q)), {a:"middle",s:13,w:"700",c:"#a3600f"});
+    s+='</g>';
+  }
+  if(L>=3){
+    s+='<g class="new">';
+    s+='<line x1="'+X+'" y1="'+(Y-14)+'" x2="'+sx+'" y2="'+(Y-14)+'" stroke="#27498a" stroke-width="3"/>';
+    s+='<line x1="'+X+'" y1="'+(Y-20)+'" x2="'+X+'" y2="'+(Y-8)+'" stroke="#27498a" stroke-width="3"/>';
+    s+=T(X+wp/2, Y-24, "A: p = "+f2(p), {a:"middle",s:13,w:"700",c:"#27498a"});
+    s+='</g>';
+    s+=T(X+wp/2, Y+S+30, "卵(雌の配偶子)の遺伝子頻度", {a:"middle",s:12.5,c:"#55606c"});
+    s+='<g class="new">';
+    s+='<line x1="'+(X-16)+'" y1="'+Y+'" x2="'+(X-16)+'" y2="'+sy+'" stroke="#27498a" stroke-width="3"/>';
+    s+='<line x1="'+(X-16)+'" y1="'+sy+'" x2="'+(X-16)+'" y2="'+(Y+S)+'" stroke="#a3600f" stroke-width="3"/>';
+    s+=T(X-24, Y+wp/2, "A: p = "+f2(p), {a:"middle",s:12.5,w:"700",c:"#27498a",r:-90});
+    s+=T(X-24, sy+wq/2, "a: q", {a:"middle",s:12.5,w:"700",c:"#a3600f",r:-90});
+    s+=T(X-46, Y+S/2, "精子(雄の配偶子)の遺伝子頻度", {a:"middle",s:12.5,c:"#55606c",r:-90});
+    s+='</g>';
+  }
+
+  /* 説明バナー */
+  var msg;
+  if(L===0){ msg="わかっているのは「aa の面積」だけ。ここから出発します。"; }
+  else if(L===1){ msg="aa の面積 = q²。この正方形の 1 辺の長さが q です。"; }
+  else if(L===2){ msg="q が決まりました。残りの辺の長さが p になります。"; }
+  else if(L===3){ msg="p と q で正方形が 4 つに分かれました。次は面積(頻度)を計算します。"; }
+  else if(L===4){ msg="4 つの面積が AA : Aa : aa = p² : 2pq : q² です。"; }
+  else { msg="4 つの面積の合計は 1(100 %)。これが (p + q)² = 1 の意味です。"; }
+  s+=R(40,Y+S+46,540,46,"#f2f5f8","#c2cbd5",1);
+  s+=T(56,Y+S+74, msg, {s:13.5,w:"700"});
+
+  if(L>=5){
+    s+=T(310, Y+S+112, "p² + 2pq + q² = "+f4(p*p)+" + "+f4(2*p*q)+" + "+f4(q*q)+" = 1.0000", {a:"middle",s:14,f:true,w:"700"});
+  }
+  if(sch){
+    s+=T(310, 88, "※模式図:q が小さいため、実際の比率より大きく描いています", {a:"middle",s:11.5,c:"#94282a"});
+  }
+
+  $("fig").setAttribute("viewBox","0 0 620 "+(Y+S+130));
+  $("fig").innerHTML=s;
+  $("figTitle").textContent="ステップ図解:面積で考える";
+  $("figDesc").textContent="正方形全体が集団全体(=1)。たての辺・よこの辺の長さが遺伝子頻度、面積が遺伝子型頻度を表します。";
+}
+
+function drawFigB(){
+  var L=st.idx, N=PROB.N, nAA=PROB.nAA, nAa=PROB.nAa, naa=PROB.naa;
+  var X=60, W=500;
+  var wAA=W*nAA/N, wAa=W*nAa/N, waa=W*naa/N;
+  var s=PAT;
+
+  s+=T(310,32,"個体の数 → 対立遺伝子の数 に数え直す",{a:"middle",w:"700",s:15});
+
+  /* 個体のバー */
+  s+=T(X,64,"① 調べた個体("+N+" 個体)",{s:13,w:"700"});
+  s+=R(X,74,wAA,54,"url(#pA)","#27498a",1.6);
+  s+=R(X+wAA,74,wAa,54,"url(#pAa)","#1b6a63",1.6);
+  s+=R(X+wAA+wAa,74,waa,54,"url(#pa)","#a3600f",1.6);
+  if(wAA>62){ s+=T(X+wAA/2,98,"● AA",{a:"middle",w:"700",s:14})+T(X+wAA/2,118,nAA+" 個体",{a:"middle",s:12.5}); }
+  if(wAa>62){ s+=T(X+wAA+wAa/2,98,"▲ Aa",{a:"middle",w:"700",s:14})+T(X+wAA+wAa/2,118,nAa+" 個体",{a:"middle",s:12.5}); }
+  if(waa>62){ s+=T(X+wAA+wAa+waa/2,98,"■ aa",{a:"middle",w:"700",s:14})+T(X+wAA+wAa+waa/2,118,naa+" 個体",{a:"middle",s:12.5}); }
+
+  /* 変換の説明 */
+  s+=R(X,150,W,86,"#f2f5f8","#c2cbd5",1);
+  s+=T(X+16,174,"② 1 個体は対立遺伝子を 2 個もつ(二倍体)",{s:13,w:"700"});
+  s+=T(X+16,198,"● AA → A・A(A が2個)   ▲ Aa → A・a(1個ずつ)   ■ aa → a・a(a が2個)",{s:12.5});
+  if(L>=1){ s+=T(X+16,222,"対立遺伝子の総数 = 2N = "+(2*N)+" 個",{s:13.5,f:true,w:"700"}); }
+  else { s+=T(X+16,222,"対立遺伝子の総数 = 2N = ?",{s:13.5,f:true,c:"#8b95a1"}); }
+  s+='<path d="M310,236 L310,262" stroke="#55606c" stroke-width="2" marker-end="url(#ar)"/>';
+
+  /* 対立遺伝子のバー */
+  s+=T(X,288,"③ 対立遺伝子("+(L>=1?(2*N)+" 個":"2N 個")+")",{s:13,w:"700"});
+  if(L>=2){
+    var wA=W*PROB.p;
+    s+='<g class="new">'+R(X,298,wA,54,"url(#pA)","#27498a",1.6)+R(X+wA,298,W-wA,54,"url(#pa)","#a3600f",1.6)+'</g>';
+    if(wA>72){ s+=T(X+wA/2,322,"● A",{a:"middle",w:"700",s:14})+T(X+wA/2,342,PROB.Acnt+" 個",{a:"middle",s:12.5}); }
+    if(W-wA>72){ s+=T(X+wA+(W-wA)/2,322,"■ a",{a:"middle",w:"700",s:14})+T(X+wA+(W-wA)/2,342,PROB.acnt+" 個",{a:"middle",s:12.5}); }
+    if(L>=3){ s+='<g class="new">'+T(X+wA/2,374,"p = "+PROB.Acnt+" ÷ "+(2*N)+" = "+f2(PROB.p),{a:"middle",s:14,f:true,w:"700",c:"#27498a"})+'</g>'; }
+    if(L>=4){ s+='<g class="new">'+T(X+wA+(W-wA)/2,374,"q = "+f2(PROB.q),{a:"middle",s:14,f:true,w:"700",c:"#a3600f"})+'</g>'; }
+  }else{
+    s+=R(X,298,W,54,"url(#pQ)","#c2cbd5",1.4);
+    s+=T(X+W/2,332,"?",{a:"middle",s:34,c:"#a7b2be",w:"700"});
+  }
+
+  /* 平衡の確認 */
+  var bottom=400;
+  if(L>=5){
+    var eb=PROB.expAa, mx=Math.max(nAa,eb,1);
+    s+='<g class="new">';
+    s+=T(X,bottom+18,"④ Aa の個体数:実際に調べた値と、平衡なら期待される値の比較",{s:13,w:"700"});
+    s+=R(X+130,bottom+30,(W-140)*nAa/mx,26,"url(#pAa)","#1b6a63",1.6);
+    s+=T(X,bottom+48,"実測",{s:12.5,w:"700"});
+    s+=T(X+140+(W-140)*nAa/mx,bottom+48,nAa+" 個体",{s:12.5});
+    s+=R(X+130,bottom+64,(W-140)*eb/mx,26,"#ffffff","#17202a",1.6);
+    s+='<rect x="'+(X+130)+'" y="'+(bottom+64)+'" width="'+((W-140)*eb/mx)+'" height="26" fill="none" stroke="#17202a" stroke-width="1.6" stroke-dasharray="7 4"/>';
+    s+=T(X,bottom+82,"期待値",{s:12.5,w:"700"});
+    s+=T(X+140+(W-140)*eb/mx,bottom+82,eb.toFixed(1)+" 個体",{s:12.5});
+    s+='</g>';
+    bottom+=100;
+  }
+
+  var msg;
+  if(L===0){ msg="遺伝子頻度は「個体の割合」ではなく「対立遺伝子の割合」で求めます。"; }
+  else if(L===1){ msg="対立遺伝子の総数 "+(2*N)+" 個が分母になります。"; }
+  else if(L===2){ msg="A の数を数えました。次はこれを 2N で割ります。"; }
+  else if(L===3){ msg="p が求まりました。残りが q です。"; }
+  else if(L===4){ msg="p と q が求まりました。平衡かどうかを確かめましょう。"; }
+  else { msg="実測と期待値の差から、平衡かどうかを検討します。"; }
+  s+=R(40,bottom+10,540,44,"#f2f5f8","#c2cbd5",1);
+  s+=T(56,bottom+38,msg,{s:13.5,w:"700"});
+
+  $("fig").setAttribute("viewBox","0 0 620 "+(bottom+74));
+  $("fig").innerHTML=s;
+  $("figTitle").textContent="ステップ図解:個体から対立遺伝子へ";
+  $("figDesc").textContent="上のバーが個体、下のバーがその個体たちがもつ対立遺伝子です。長さの割合がそのまま頻度になります。";
+}
+
+/* ================= グラフ ================= */
+function gx(v){return 60+v*470;}
+function gy(v){return 300-v*260;}
+function drawGraph(){
+  var s="", i;
+  for(i=0;i<=5;i++){
+    var v=i/5;
+    s+='<line x1="'+gx(v)+'" y1="40" x2="'+gx(v)+'" y2="300" stroke="#dde3ea" stroke-width="1"/>';
+    s+='<line x1="60" y1="'+gy(v)+'" x2="530" y2="'+gy(v)+'" stroke="#dde3ea" stroke-width="1"/>';
+    s+=T(gx(v),320,v.toFixed(1),{a:"middle",s:12,f:true});
+    s+=T(52,gy(v)+5,v.toFixed(1),{a:"end",s:12,f:true});
+  }
+  s+='<line x1="60" y1="40" x2="60" y2="300" stroke="#17202a" stroke-width="2"/>';
+  s+='<line x1="60" y1="300" x2="530" y2="300" stroke="#17202a" stroke-width="2"/>';
+  s+=T(295,346,"a の遺伝子頻度 q",{a:"middle",s:13});
+  s+=T(20,170,"割合",{a:"middle",s:13,r:-90});
+  var c1="",c2="";
+  for(i=0;i<=100;i++){ var q=i/100; c1+=gx(q)+","+gy(q*q)+" "; c2+=gx(q)+","+gy(2*q*(1-q))+" "; }
+  s+='<polyline points="'+c2+'" fill="none" stroke="#1b6a63" stroke-width="3.4" stroke-dasharray="12 7"/>';
+  s+='<polyline points="'+c1+'" fill="none" stroke="#a3600f" stroke-width="3.4" stroke-dasharray="2 6" stroke-linecap="round"/>';
+  s+=T(300,gy(0.5)-12,"▲ Aa = 2pq(最大 0.5)",{a:"middle",s:12.5,w:"700",c:"#1b6a63"});
+  s+=T(505,gy(1)+18,"■ aa = q²",{a:"end",s:12.5,w:"700",c:"#a3600f"});
+
+  var known = (st.idx>=2);
+  if(known && PROB.q!=null){
+    var q=PROB.q;
+    s+='<line x1="'+gx(q)+'" y1="40" x2="'+gx(q)+'" y2="300" stroke="#17202a" stroke-width="2" stroke-dasharray="6 4"/>';
+    s+='<rect x="'+(gx(q)-6)+'" y="'+(gy(q*q)-6)+'" width="12" height="12" fill="#a3600f" stroke="#fff" stroke-width="2"/>';
+    s+='<rect x="'+(gx(q)-6.5)+'" y="'+(gy(2*q*(1-q))-6.5)+'" width="13" height="13" fill="#1b6a63" stroke="#fff" stroke-width="2" transform="rotate(45 '+gx(q)+' '+gy(2*q*(1-q))+')"/>';
+    s+=T(gx(q),56,"この問題の q",{a:"middle",s:12,w:"700"});
+    $("gRead").textContent="この問題:q = "+(q<0.01?f4(q):f2(q))+" のとき  aa = "+pcs(q*q,3)+" % / Aa = "+pcs(2*q*(1-q),2)+" %(Aa は aa の約 "+Math.round(2*(1-q)/q)+" 倍)";
+  }else{
+    $("gRead").textContent="STEP 2 で q が求まると、この問題の位置がグラフ上に示されます。";
+  }
+  $("graph").innerHTML=PAT+s;
+}
+
+/* ================= 操作 ================= */
+document.querySelectorAll(".pick button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".pick button").forEach(function(x){x.setAttribute("aria-pressed","false");});
+    b.setAttribute("aria-pressed","true");
+    TYPE=b.dataset.type; newProblem();
+  });
+});
+$("newq").addEventListener("click",newProblem);
+$("restart").addEventListener("click",function(){
+  st.idx=0; st.correct=0; st.st=PROB.steps.map(function(){return "todo";}); render();
+});
+function setMode(m){
+  st.mode=m;
+  $("mStep").setAttribute("aria-pressed",m==="step");
+  $("mSelf").setAttribute("aria-pressed",m==="self");
+  if(m==="self"){ st.idx=0; st.correct=0; st.st=PROB.steps.map(function(){return "todo";}); }
+  render();
+}
+$("mStep").addEventListener("click",function(){setMode("step");});
+$("mSelf").addEventListener("click",function(){setMode("self");});
+
+newProblem();
+</script>
+</body>
+</html>

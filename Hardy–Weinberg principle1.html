@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ハーディ・ワインベルグの法則|インタラクティブ図解(高校生物)</title>
+<style>
+:root{
+  --paper:#eef1f4;
+  --card:#ffffff;
+  --ink:#182028;
+  --sub:#54606d;
+  --line:#c3ccd6;
+  --indigo:#2a4d8f;      /* 対立遺伝子A */
+  --indigo-soft:#dde5f4;
+  --amber:#a86412;       /* 対立遺伝子a */
+  --amber-soft:#f7e8cf;
+  --teal:#1d6f68;        /* ヘテロ Aa */
+  --teal-soft:#d9ece9;
+  --ok:#186a4a;
+  --ng:#9a2b2b;
+  --focus:#0b63c5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px; line-height:1.7;
+  -webkit-text-size-adjust:100%;
+}
+.formula{font-family:"Times New Roman","Yu Mincho",serif; font-size:1.08em; letter-spacing:.02em;}
+.wrap{max-width:1120px;margin:0 auto;padding:12px 12px 48px}
+
+header.head{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px 18px;
+  margin-bottom:12px;
+}
+header.head .eyebrow{
+  font-size:.78rem;letter-spacing:.18em;color:var(--sub);margin:0 0 4px;
+}
+header.head h1{font-size:1.32rem;margin:0 0 4px;letter-spacing:.02em}
+header.head p{margin:0;font-size:.9rem;color:var(--sub)}
+
+/* タブ */
+nav.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+nav.tabs button{
+  flex:1 1 150px;min-height:52px;padding:8px 10px;
+  font-size:1rem;font-weight:700;font-family:inherit;
+  background:var(--card);color:var(--sub);
+  border:1px solid var(--line);border-radius:10px;cursor:pointer;
+}
+nav.tabs button[aria-selected="true"]{
+  background:var(--ink);color:#fff;border-color:var(--ink);
+}
+nav.tabs button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:3px solid var(--focus);outline-offset:2px;
+}
+
+.panel{display:none}
+.panel.on{display:block}
+
+/* コントロール */
+.ctrl{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:12px;
+}
+.ctrl .row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.ctrl label{font-weight:700;font-size:.95rem}
+.readout{
+  font-family:"Times New Roman",serif;font-size:1.15rem;font-weight:700;
+  background:var(--paper);border:1px solid var(--line);border-radius:8px;
+  padding:4px 12px;white-space:nowrap;
+}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;
+}
+input[type=range]::-webkit-slider-runnable-track{height:10px;background:linear-gradient(90deg,var(--indigo),var(--amber));border-radius:6px}
+input[type=range]::-moz-range-track{height:10px;background:linear-gradient(90deg,var(--indigo),var(--amber));border-radius:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:34px;height:34px;border-radius:50%;background:#fff;border:4px solid var(--ink);margin-top:-12px;cursor:pointer}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:4px solid var(--ink);cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  min-height:44px;min-width:64px;padding:6px 12px;font-size:.95rem;font-weight:700;
+  font-family:inherit;background:var(--paper);border:1px solid var(--line);
+  border-radius:8px;cursor:pointer;color:var(--ink);
+}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.mode[aria-pressed="true"]{background:var(--teal);border-color:var(--teal)}
+
+/* レイアウト */
+.split{display:grid;grid-template-columns:1.45fr 1fr;gap:12px;align-items:start}
+@media (max-width:860px){.split{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card h2{font-size:1.02rem;margin:0 0 8px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.card h3{font-size:.95rem;margin:14px 0 6px}
+svg{display:block;width:100%;height:auto;touch-action:manipulation}
+
+/* 図の部品 */
+.part{cursor:pointer}
+.part .hit{transition:opacity .12s}
+.part:hover .hit{opacity:.82}
+.part.sel .outline{stroke:var(--ink);stroke-width:4;stroke-dasharray:9 5}
+.part:focus{outline:none}
+.part:focus-visible .outline{stroke:var(--focus);stroke-width:4}
+.outline{fill:none;stroke:transparent;stroke-width:0}
+.svgtxt{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;fill:var(--ink)}
+.svgnum{font-family:"Times New Roman",serif}
+.badge{display:none;font-weight:700}
+body.test .badge{display:block}
+body.test .hideT{display:none}
+
+/* 説明パネル */
+#infoTitle{font-size:1.05rem;font-weight:700;margin:0 0 6px}
+#infoBody{margin:0;font-size:.95rem}
+.tag{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:var(--paper);margin-right:6px}
+.eq{background:var(--paper);border-left:5px solid var(--ink);padding:8px 12px;margin:10px 0;border-radius:0 8px 8px 0}
+
+/* クイズ */
+.qopts{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.qopts button{
+  min-height:52px;padding:8px 12px;text-align:left;font-size:.95rem;font-family:inherit;
+  background:var(--card);border:2px solid var(--line);border-radius:10px;cursor:pointer;color:var(--ink);
+}
+.qopts button:hover{border-color:var(--ink)}
+.qopts button.correct{border-color:var(--ok);background:#e8f4ee;font-weight:700}
+.qopts button.wrong{border-color:var(--ng);background:#f8ebeb}
+.score{font-weight:700;font-size:.95rem}
+.judge{font-weight:700;margin-top:8px}
+.judge.o{color:var(--ok)}
+.judge.x{color:var(--ng)}
+
+/* 計算演習 */
+.qbox{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.ansgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:10px 0}
+.ansgrid label{display:block;font-size:.9rem;font-weight:700;margin-bottom:4px}
+.ansgrid input{width:100%;min-height:48px;font-size:1.05rem;padding:4px 10px;border:2px solid var(--line);border-radius:8px;font-family:"Times New Roman",serif}
+.btn{
+  min-height:52px;padding:10px 20px;font-size:1rem;font-weight:700;font-family:inherit;
+  background:var(--ink);color:#fff;border:none;border-radius:10px;cursor:pointer;margin:4px 6px 4px 0;
+}
+.btn.sub{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+
+/* 条件カード */
+.cond{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.cond li{background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--ink);border-radius:0 10px 10px 0;padding:10px 12px}
+.cond b{display:block;font-size:.98rem;margin-bottom:2px}
+.cond span{font-size:.88rem;color:var(--sub)}
+
+table.legend{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:8px}
+table.legend th,table.legend td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+table.legend th{background:var(--paper)}
+
+.note{font-size:.86rem;color:var(--sub)}
+footer.foot{margin-top:16px}
+details.safety{background:#fff8e8;border:1px solid #d9b877;border-radius:10px;padding:10px 14px}
+details.safety summary{font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center}
+details.safety ul{margin:6px 0 0;padding-left:1.2em;font-size:.92rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body class="learn">
+<div class="wrap">
+
+<header class="head">
+  <p class="eyebrow">高等学校 生物 ─ 生物の進化 / 遺伝子頻度の変化</p>
+  <h1>ハーディ・ワインベルグの法則</h1>
+  <p>遺伝子頻度 p を動かしながら、遺伝子型頻度 <span class="formula">p² : 2pq : q²</span> がどう決まるかを確かめよう。</p>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" id="t1" aria-selected="true" data-tab="fig">1. 図解</button>
+  <button role="tab" id="t2" aria-selected="false" data-tab="graph">2. グラフ</button>
+  <button role="tab" id="t3" aria-selected="false" data-tab="calc">3. 計算演習</button>
+  <button role="tab" id="t4" aria-selected="false" data-tab="cond">4. 成立条件と遺伝的浮動</button>
+</nav>
+
+<!-- ============ 共通コントロール ============ -->
+<div class="ctrl" id="ctrl">
+  <div class="row" style="margin-bottom:6px">
+    <label for="pslider">Aの遺伝子頻度 p</label>
+    <span class="readout" id="pread">p = 0.60 / q = 0.40</span>
+    <div class="chips" style="margin-left:auto">
+      <button class="chip mode" id="mLearn" aria-pressed="true">学習モード</button>
+      <button class="chip mode" id="mTest" aria-pressed="false">テストモード</button>
+    </div>
+  </div>
+  <input type="range" id="pslider" min="0" max="1" step="0.01" value="0.6" aria-label="Aの遺伝子頻度p">
+  <div class="chips" style="margin-top:4px">
+    <button class="chip" data-p="0.1">p=0.1</button>
+    <button class="chip" data-p="0.25">p=0.25</button>
+    <button class="chip" data-p="0.5">p=0.5</button>
+    <button class="chip" data-p="0.6">p=0.6</button>
+    <button class="chip" data-p="0.8">p=0.8</button>
+    <button class="chip" data-p="0.95">p=0.95</button>
+  </div>
+</div>
+
+<!-- ============ タブ1:図解 ============ -->
+<section class="panel on" id="panel-fig">
+<div class="split">
+
+  <div class="card">
+    <h2>ランダムな受精と遺伝子型頻度</h2>
+    <svg id="dia" viewBox="0 0 760 645" role="img" aria-label="遺伝子プールから配偶子ができ、ランダムに受精して次世代の遺伝子型頻度が決まる図">
+      <defs>
+        <pattern id="patA" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="9" height="9" fill="#dde5f4"/>
+          <line x1="0" y1="0" x2="0" y2="9" stroke="#2a4d8f" stroke-width="2.6"/>
+        </pattern>
+        <pattern id="pata" width="9" height="9" patternUnits="userSpaceOnUse">
+          <rect width="9" height="9" fill="#f7e8cf"/>
+          <circle cx="4.5" cy="4.5" r="1.9" fill="#a86412"/>
+        </pattern>
+        <pattern id="patAa" width="9" height="9" patternUnits="userSpaceOnUse">
+          <rect width="9" height="9" fill="#d9ece9"/>
+          <line x1="0" y1="0" x2="9" y2="0" stroke="#1d6f68" stroke-width="2.4"/>
+        </pattern>
+        <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#54606d"/>
+        </marker>
+      </defs>
+
+      <!-- ① 遺伝子プール -->
+      <g class="part" data-id="pool" tabindex="0" role="button" aria-label="遺伝子プール">
+        <rect class="hit" x="40" y="16" width="680" height="100" rx="10" fill="#f2f5f8" stroke="#c3ccd6"/>
+        <rect class="outline" x="40" y="16" width="680" height="100" rx="10"/>
+        <text class="svgtxt hideT" x="56" y="42" font-size="16" font-weight="700">遺伝子プール(親世代の集団がもつ対立遺伝子全体)</text>
+        <text class="svgtxt badge" x="56" y="42" font-size="19" font-weight="700">①</text>
+      </g>
+      <!-- ②③ 対立遺伝子 A / a -->
+      <g class="part" data-id="A" tabindex="0" role="button" aria-label="対立遺伝子A">
+        <rect class="hit" id="poolA" x="64" y="56" width="379" height="46" fill="url(#patA)" stroke="#2a4d8f" stroke-width="2"/>
+        <rect class="outline" id="poolAo" x="64" y="56" width="379" height="46"/>
+        <text class="svgtxt hideT" id="tPoolA" x="253" y="86" font-size="17" font-weight="700" text-anchor="middle">● A(p = 0.60)</text>
+        <text class="svgtxt badge" id="bPoolA" x="253" y="86" font-size="19" font-weight="700" text-anchor="middle">②</text>
+      </g>
+      <g class="part" data-id="a" tabindex="0" role="button" aria-label="対立遺伝子a">
+        <rect class="hit" id="poola" x="443" y="56" width="253" height="46" fill="url(#pata)" stroke="#a86412" stroke-width="2"/>
+        <rect class="outline" id="poolao" x="443" y="56" width="253" height="46"/>
+        <text class="svgtxt hideT" id="tPoola" x="569" y="86" font-size="17" font-weight="700" text-anchor="middle">■ a(q = 0.40)</text>
+        <text class="svgtxt badge" id="bPoola" x="569" y="86" font-size="19" font-weight="700" text-anchor="middle">③</text>
+      </g>
+
+      <!-- 矢印(減数分裂) -->
+      <path d="M600,118 L600,176" fill="none" stroke="#54606d" stroke-width="2" marker-end="url(#arw)"/>
+      <path d="M110,118 L110,250 L166,250" fill="none" stroke="#54606d" stroke-width="2" marker-end="url(#arw)"/>
+      <text class="svgtxt" x="622" y="152" font-size="13" fill="#54606d">減数分裂</text>
+      <text class="svgtxt" x="46" y="140" font-size="13" fill="#54606d">減数分裂</text>
+
+      <!-- ④ 卵(横軸) -->
+      <g class="part" data-id="egg" tabindex="0" role="button" aria-label="卵の遺伝子頻度">
+        <text class="svgtxt hideT" x="215" y="176" font-size="14" font-weight="700">卵(雌の配偶子)の遺伝子頻度</text>
+        <rect class="hit" id="eggA" x="215" y="182" width="180" height="36" fill="url(#patA)" stroke="#2a4d8f" stroke-width="2"/>
+        <rect class="hit" id="egga" x="395" y="182" width="120" height="36" fill="url(#pata)" stroke="#a86412" stroke-width="2"/>
+        <rect class="outline" x="215" y="182" width="300" height="36"/>
+        <text class="svgtxt hideT" id="tEggA" x="305" y="206" font-size="15" font-weight="700" text-anchor="middle">A 0.60</text>
+        <text class="svgtxt hideT" id="tEgga" x="455" y="206" font-size="15" font-weight="700" text-anchor="middle">a 0.40</text>
+        <text class="svgtxt badge" x="365" y="207" font-size="19" font-weight="700" text-anchor="middle">④</text>
+      </g>
+
+      <!-- ⑤ 精子(縦軸) -->
+      <g class="part" data-id="sperm" tabindex="0" role="button" aria-label="精子の遺伝子頻度">
+        <text class="svgtxt hideT" x="158" y="380" font-size="14" font-weight="700" text-anchor="middle" transform="rotate(-90,158,380)">精子(雄の配偶子)の遺伝子頻度</text>
+        <rect class="hit" id="spA" x="172" y="230" width="36" height="180" fill="url(#patA)" stroke="#2a4d8f" stroke-width="2"/>
+        <rect class="hit" id="spa" x="172" y="410" width="36" height="120" fill="url(#pata)" stroke="#a86412" stroke-width="2"/>
+        <rect class="outline" x="172" y="230" width="36" height="300"/>
+        <text class="svgtxt hideT" id="tSpA" x="190" y="325" font-size="14" font-weight="700" text-anchor="middle" transform="rotate(-90,190,325)">A 0.60</text>
+        <text class="svgtxt hideT" id="tSpa" x="190" y="470" font-size="14" font-weight="700" text-anchor="middle" transform="rotate(-90,190,470)">a 0.40</text>
+        <text class="svgtxt badge" x="190" y="386" font-size="19" font-weight="700" text-anchor="middle">⑤</text>
+      </g>
+
+      <!-- 面積図の枠 -->
+      <rect x="215" y="230" width="300" height="300" fill="#ffffff" stroke="#182028" stroke-width="2"/>
+
+      <!-- ⑧ aa(先に描く:小さい領域が上に来るよう順序調整) -->
+      <g class="part" data-id="aa" tabindex="0" role="button" aria-label="遺伝子型aa">
+        <rect class="hit" id="rAa2" x="395" y="230" width="120" height="180" fill="url(#patAa)" stroke="#1d6f68" stroke-width="1.5"/>
+      </g>
+      <g class="part" data-id="Aa" tabindex="0" role="button" aria-label="遺伝子型Aa">
+        <rect class="hit" id="rAa1" x="215" y="410" width="180" height="120" fill="url(#patAa)" stroke="#1d6f68" stroke-width="1.5"/>
+        <rect class="outline" id="oAa1" x="215" y="410" width="180" height="120"/>
+        <text class="svgtxt hideT" id="tAa1" x="305" y="464" font-size="18" font-weight="700" text-anchor="middle">▲ Aa</text>
+        <text class="svgtxt svgnum hideT" id="vAa1" x="305" y="486" font-size="15" text-anchor="middle">pq = 0.24</text>
+        <text class="svgtxt badge" id="bAa" x="305" y="476" font-size="19" font-weight="700" text-anchor="middle">⑦</text>
+      </g>
+      <g class="part" data-id="AA" tabindex="0" role="button" aria-label="遺伝子型AA">
+        <rect class="hit" id="rAA" x="215" y="230" width="180" height="180" fill="url(#patA)" stroke="#2a4d8f" stroke-width="1.5"/>
+        <rect class="outline" id="oAA" x="215" y="230" width="180" height="180"/>
+        <text class="svgtxt hideT" id="tAA" x="305" y="314" font-size="18" font-weight="700" text-anchor="middle">● AA</text>
+        <text class="svgtxt svgnum hideT" id="vAA" x="305" y="336" font-size="15" text-anchor="middle">p² = 0.36</text>
+        <text class="svgtxt badge" id="bAA" x="305" y="326" font-size="19" font-weight="700" text-anchor="middle">⑥</text>
+      </g>
+      <g class="part" data-id="aa2" tabindex="0" role="button" aria-label="遺伝子型aa">
+        <rect class="hit" id="raa" x="395" y="410" width="120" height="120" fill="url(#pata)" stroke="#a86412" stroke-width="1.5"/>
+        <rect class="outline" id="oaa" x="395" y="410" width="120" height="120"/>
+        <text class="svgtxt hideT" id="taa" x="455" y="464" font-size="18" font-weight="700" text-anchor="middle">■ aa</text>
+        <text class="svgtxt svgnum hideT" id="vaa" x="455" y="486" font-size="15" text-anchor="middle">q² = 0.16</text>
+        <text class="svgtxt badge" id="baa" x="455" y="476" font-size="19" font-weight="700" text-anchor="middle">⑧</text>
+      </g>
+      <!-- Aa もう一方(右上)のラベル -->
+      <g class="part" data-id="Aa" tabindex="0" role="button" aria-label="遺伝子型Aa もう一方の組み合わせ">
+        <rect class="outline" id="oAa2" x="395" y="230" width="120" height="180"/>
+        <text class="svgtxt hideT" id="tAa2" x="455" y="314" font-size="18" font-weight="700" text-anchor="middle">▲ Aa</text>
+        <text class="svgtxt svgnum hideT" id="vAa2" x="455" y="336" font-size="15" text-anchor="middle">pq = 0.24</text>
+      </g>
+      <rect x="215" y="230" width="300" height="300" fill="none" stroke="#182028" stroke-width="2" pointer-events="none"/>
+
+      <!-- ⑨ 次世代の遺伝子型頻度 -->
+      <g class="part" data-id="sum" tabindex="0" role="button" aria-label="次世代の遺伝子型頻度の合計">
+        <rect class="hit" x="535" y="230" width="210" height="300" rx="10" fill="#f2f5f8" stroke="#c3ccd6"/>
+        <rect class="outline" x="535" y="230" width="210" height="300" rx="10"/>
+        <text class="svgtxt hideT" x="550" y="256" font-size="15" font-weight="700">次世代の遺伝子型頻度</text>
+        <text class="svgtxt badge" x="550" y="256" font-size="19" font-weight="700">⑨</text>
+        <g class="hideT">
+          <text class="svgtxt svgnum" id="sAA" x="550" y="296" font-size="16">● AA = p² = 0.36</text>
+          <text class="svgtxt svgnum" id="sAa" x="550" y="330" font-size="16">▲ Aa = 2pq = 0.48</text>
+          <text class="svgtxt svgnum" id="saa" x="550" y="364" font-size="16">■ aa = q² = 0.16</text>
+          <line x1="550" y1="382" x2="730" y2="382" stroke="#182028" stroke-width="1.5"/>
+          <text class="svgtxt svgnum" x="550" y="408" font-size="16">合計 = 1.00</text>
+          <text class="svgtxt svgnum" x="550" y="452" font-size="15">(p + q)²</text>
+          <text class="svgtxt svgnum" x="550" y="476" font-size="15"> = p² + 2pq + q²</text>
+          <text class="svgtxt svgnum" x="550" y="500" font-size="15"> = 1</text>
+        </g>
+      </g>
+
+      <!-- ⑩ 次世代の遺伝子頻度 -->
+      <g class="part" data-id="next" tabindex="0" role="button" aria-label="次世代の遺伝子頻度">
+        <rect class="hit" x="40" y="552" width="705" height="80" rx="10" fill="#f2f5f8" stroke="#c3ccd6"/>
+        <rect class="outline" x="40" y="552" width="705" height="80" rx="10"/>
+        <text class="svgtxt hideT" x="56" y="578" font-size="15" font-weight="700">次世代の遺伝子頻度</text>
+        <text class="svgtxt badge" x="56" y="578" font-size="19" font-weight="700">⑩</text>
+        <text class="svgtxt svgnum hideT" id="nextEq" x="56" y="608" font-size="16">p′ = p² + ½ × 2pq = p(p + q) = p = 0.60 、 q′ = q = 0.40 → 遺伝子頻度は変化しない</text>
+      </g>
+    </svg>
+    <p class="note" style="margin:8px 0 0">面積の大きさが、そのまま遺伝子型の割合を表しています(正方形全体 = 1)。</p>
+  </div>
+
+  <aside class="card" id="info" aria-live="polite">
+    <h2 id="infoHead">説明</h2>
+    <div id="learnPane">
+      <p id="infoTitle">図の各部分をタップしてください</p>
+      <p id="infoBody">スライダーで p を変えると、面積の比 <span class="formula">p² : 2pq : q²</span> が変わります。番号①〜⑩の部分をタップすると、名称と意味が表示されます。</p>
+      <div class="eq formula" id="infoEq" style="display:none"></div>
+    </div>
+
+    <div id="testPane" style="display:none">
+      <p class="score" id="scoreLine">正解 0 / 解答 0(全10問)</p>
+      <p id="qPrompt">図の番号をタップして、その部分の名称を答えよう。</p>
+      <div class="qopts" id="qOpts"></div>
+      <p class="judge" id="judge"></p>
+      <p id="qDesc" style="font-size:.92rem"></p>
+      <button class="btn sub" id="resetQuiz" style="margin-top:8px">成績をリセット</button>
+    </div>
+
+    <h3>凡例(色+形+文字で区別)</h3>
+    <table class="legend">
+      <tr><th>記号</th><th>意味</th><th>頻度</th></tr>
+      <tr><td>● 斜線</td><td>AA(顕性ホモ接合)</td><td class="formula">p²</td></tr>
+      <tr><td>▲ 横線</td><td>Aa(ヘテロ接合)</td><td class="formula">2pq</td></tr>
+      <tr><td>■ 点</td><td>aa(潜性ホモ接合)</td><td class="formula">q²</td></tr>
+    </table>
+  </aside>
+</div>
+</section>
+
+<!-- ============ タブ2:グラフ ============ -->
+<section class="panel" id="panel-graph">
+  <div class="split">
+    <div class="card">
+      <h2>遺伝子頻度 p と遺伝子型頻度の関係</h2>
+      <svg id="graph" viewBox="0 0 560 400" role="img" aria-label="pに対するAA、Aa、aaの頻度のグラフ">
+        <g id="grid"></g>
+        <line x1="70" y1="40" x2="70" y2="330" stroke="#182028" stroke-width="2"/>
+        <line x1="70" y1="330" x2="520" y2="330" stroke="#182028" stroke-width="2"/>
+        <text class="svgtxt" x="295" y="374" font-size="14" text-anchor="middle">Aの遺伝子頻度 p</text>
+        <text class="svgtxt" x="22" y="185" font-size="14" text-anchor="middle" transform="rotate(-90,22,185)">遺伝子型頻度</text>
+        <g id="curves"></g>
+        <line id="pline" x1="340" y1="40" x2="340" y2="330" stroke="#182028" stroke-width="2" stroke-dasharray="6 4"/>
+        <g id="dots"></g>
+        <g id="ticks"></g>
+      </svg>
+      <p class="note">実線●=AA(p²)、破線▲=Aa(2pq)、点線■=aa(q²)。縦の破線が現在の p です。</p>
+    </div>
+    <div class="card">
+      <h2>グラフから読みとること</h2>
+      <div class="eq formula">AA = p²  Aa = 2pq  aa = q²  (q = 1 − p)</div>
+      <ul style="font-size:.95rem;padding-left:1.2em">
+        <li><b>Aa(ヘテロ)は p = q = 0.5 のとき最大</b>で、その値は 2 × 0.5 × 0.5 = <span class="formula">0.5</span>。ヘテロは 50 % を超えない。</li>
+        <li>p が小さいとき、AA は p² なのでごくまれになる。たとえば p = 0.01 なら AA は 0.0001(1万人に1人)。</li>
+        <li>まれな潜性形質では、<b>aa より Aa のほうがずっと多い</b>。q = 0.01 のとき aa = 0.0001、Aa = 0.0198 で約200倍。</li>
+        <li>AA の曲線と aa の曲線は p = 0.5 を境に左右対称になる。</li>
+      </ul>
+      <p class="score" id="gRead" style="margin-top:10px"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ タブ3:計算演習 ============ -->
+<section class="panel" id="panel-calc">
+  <div class="split">
+    <div class="card">
+      <h2>計算演習(潜性形質の割合から遺伝子頻度を求める)</h2>
+      <div class="qbox">
+        <p id="qText" style="margin:0"></p>
+      </div>
+      <p class="note">ハーディ・ワインベルグの法則が成り立つとみなして考えます。小数(例 0.25)または % 記号なしの数値で答えてください。</p>
+      <div class="ansgrid">
+        <div><label for="ansQ">① a の遺伝子頻度 q(小数)</label><input id="ansQ" type="text" inputmode="decimal" autocomplete="off"></div>
+        <div><label for="ansP">② A の遺伝子頻度 p(小数)</label><input id="ansP" type="text" inputmode="decimal" autocomplete="off"></div>
+        <div><label for="ansH">③ Aa(ヘテロ)の割合(%)</label><input id="ansH" type="text" inputmode="decimal" autocomplete="off"></div>
+      </div>
+      <button class="btn" id="grade">採点する</button>
+      <button class="btn sub" id="newq">別の問題</button>
+      <button class="btn sub" id="showSol">解き方を見る</button>
+      <p class="judge" id="calcJudge"></p>
+      <div id="sol" style="display:none"></div>
+    </div>
+    <div class="card">
+      <h2>解き方の型</h2>
+      <ol style="font-size:.95rem;padding-left:1.3em">
+        <li>潜性形質(aa)の割合が <span class="formula">q²</span> にあたる。</li>
+        <li><span class="formula">q = √(q²)</span> を計算する。</li>
+        <li><span class="formula">p = 1 − q</span> を求める。</li>
+        <li>ヘテロ Aa の割合は <span class="formula">2pq</span>。</li>
+      </ol>
+      <div class="eq formula">q² → q = √(q²) → p = 1 − q → Aa = 2pq</div>
+      <p class="note">注意:ヒトの集団などで実際にこの計算を使うときは、任意交配・移出入なし・自然選択が働かない、といった条件をおおよそ満たす場合に限られます。条件が成り立たない集団では、計算値は目安にすぎません。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ タブ4:成立条件 ============ -->
+<section class="panel" id="panel-cond">
+  <div class="card" style="margin-bottom:12px">
+    <h2>法則が成り立つ5つの条件</h2>
+    <ul class="cond">
+      <li><b>1. 個体数が十分に大きい</b><span>小さい集団では偶然による遺伝子頻度の変化(遺伝的浮動)が無視できない。</span></li>
+      <li><b>2. 突然変異が起こらない</b><span>突然変異が起きると新しい対立遺伝子が生じ、頻度が変わる。</span></li>
+      <li><b>3. 自然選択が働かない</b><span>どの遺伝子型も生存率・繁殖力が等しい。差があれば有利な遺伝子が増える。</span></li>
+      <li><b>4. 個体の移入・移出がない</b><span>他集団との間で遺伝子の流入(遺伝子流動)があると頻度が変わる。</span></li>
+      <li><b>5. 自由な交配(任意交配)が行われる</b><span>特定の遺伝子型どうしが選んで交配すると、遺伝子型頻度がずれる。</span></li>
+    </ul>
+    <p class="note" style="margin-top:10px">これらを満たす集団では遺伝子頻度が世代を通じて変化しません。つまり<b>「進化が起こらない状態」</b>を表す基準であり、実際の集団はふつうどれかの条件を満たさないため、進化が起こると考えられます。</p>
+  </div>
+
+  <div class="split">
+    <div class="card">
+      <h2>条件1を確かめる:遺伝的浮動のシミュレーション</h2>
+      <svg id="drift" viewBox="0 0 560 340" role="img" aria-label="集団の大きさごとの遺伝子頻度の世代変化">
+        <line x1="60" y1="20" x2="60" y2="290" stroke="#182028" stroke-width="2"/>
+        <line x1="60" y1="290" x2="530" y2="290" stroke="#182028" stroke-width="2"/>
+        <line x1="60" y1="155" x2="530" y2="155" stroke="#c3ccd6" stroke-width="1" stroke-dasharray="4 4"/>
+        <text class="svgtxt" x="295" y="326" font-size="13" text-anchor="middle">世代</text>
+        <text class="svgtxt" x="18" y="155" font-size="13" text-anchor="middle" transform="rotate(-90,18,155)">Aの遺伝子頻度 p</text>
+        <text class="svgtxt svgnum" x="52" y="26" font-size="12" text-anchor="end">1.0</text>
+        <text class="svgtxt svgnum" x="52" y="159" font-size="12" text-anchor="end">0.5</text>
+        <text class="svgtxt svgnum" x="52" y="294" font-size="12" text-anchor="end">0.0</text>
+        <g id="driftLines"></g>
+      </svg>
+      <div class="chips" style="margin-top:8px">
+        <button class="chip" data-n="10" aria-pressed="true">N = 10</button>
+        <button class="chip" data-n="50" aria-pressed="false">N = 50</button>
+        <button class="chip" data-n="500" aria-pressed="false">N = 500</button>
+        <button class="btn" id="runDrift" style="margin-left:auto">もう一度走らせる</button>
+      </div>
+      <p class="note" id="driftNote"></p>
+    </div>
+    <div class="card">
+      <h2>考えてみよう</h2>
+      <ul style="font-size:.95rem;padding-left:1.2em">
+        <li>N を小さくすると、5本の線はどうなりますか。p = 0 や p = 1 に達した集団では、その後どうなりますか。</li>
+        <li>p = 1 になることを対立遺伝子の<b>固定</b>、p = 0 になることを<b>消失</b>といいます。固定・消失が起こると、その集団では遺伝子頻度はもう変化しません。</li>
+        <li>N を大きくすると線のばらつきは小さくなります。これが「個体数が十分に大きい」という条件の意味です。</li>
+      </ul>
+      <p class="note">このシミュレーションは、毎世代 2N 個の配偶子を無作為に選び直すという簡単なモデルです。実際の集団では自然選択なども同時に働くため、変化のようすはより複雑になります。</p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <details class="safety">
+    <summary>⚠ 実習・観察を行うときの安全上の注意</summary>
+    <ul>
+      <li><b>ビーズ・豆・おはじきなどを使う模擬実験</b>:小さい部品は口や鼻に入れない(誤飲・窒息の危険)。使用後は必ず手を洗う。</li>
+      <li>豆類・ナッツ類を教材に使う場合は、<b>食物アレルギー</b>のある生徒がいないか事前に確認する。教材の豆は食べない。</li>
+      <li>床に落ちたビーズは滑って転倒の原因になる。落としたらすぐ拾い、実習後に人数分そろっているか数える。</li>
+      <li><b>生物材料(ショウジョウバエ、植物、ヒトの形質調査など)</b>を扱う場合は、生き物や個人情報の扱いに配慮し、教員の指示に従う。ヒトの形質を調べる調査では、答えたくない生徒に無理をさせない。</li>
+      <li>薬品・火気・電気器具はこの教材では使用しません。使用する実験と組み合わせる場合は、その実験の注意事項に従ってください。</li>
+    </ul>
+  </details>
+  <p class="note" style="text-align:center;margin-top:12px">高等学校 生物「生物の進化」/ ハーディ・ワインベルグの法則 ─ 授業用インタラクティブ教材</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+/* ===================== データ ===================== */
+var CIRC = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+var PARTS = [
+ {id:"pool", n:0, name:"遺伝子プール",
+  desc:"集団のすべての個体がもつ対立遺伝子全体のこと。ここには対立遺伝子 A と a が、A : a = p : q の割合で含まれる。この割合を遺伝子頻度といい、p + q = 1 が成り立つ。",
+  eq:"p + q = 1"},
+ {id:"A", n:1, name:"対立遺伝子A(遺伝子頻度 p)",
+  desc:"顕性(優性)の対立遺伝子 A。集団内の全対立遺伝子のうち A が占める割合が、A の遺伝子頻度 p である。個体数 N の二倍体集団なら、対立遺伝子は全部で 2N 個ある。",
+  eq:"p = (Aの数) ÷ 2N"},
+ {id:"a", n:2, name:"対立遺伝子a(遺伝子頻度 q)",
+  desc:"潜性(劣性)の対立遺伝子 a。その遺伝子頻度 q は q = 1 − p で求められる。aa の個体だけが潜性形質を現す。",
+  eq:"q = 1 − p"},
+ {id:"egg", n:3, name:"卵(雌の配偶子)の遺伝子頻度",
+  desc:"減数分裂でできる配偶子には対立遺伝子が1つずつ入る。そのため配偶子の遺伝子頻度は、親集団の遺伝子プールの遺伝子頻度をそのまま反映し、A をもつ卵が p、a をもつ卵が q の割合になる。",
+  eq:"卵 → A : a = p : q"},
+ {id:"sperm", n:4, name:"精子(雄の配偶子)の遺伝子頻度",
+  desc:"精子も同じく A : a = p : q。自由な交配(任意交配)では、どの卵とどの精子が出会うかは偶然で決まる。この「ランダムな受精」が、次の遺伝子型頻度を決めるしくみである。",
+  eq:"精子 → A : a = p : q"},
+ {id:"AA", n:5, name:"遺伝子型AAの頻度(p²)",
+  desc:"A をもつ卵(頻度 p)と A をもつ精子(頻度 p)が受精してできる。それぞれ独立に起こるので、確率の積で p × p = p² となる。図では左上の正方形の面積にあたる。",
+  eq:"AA = p × p = p²"},
+ {id:"Aa", n:6, name:"遺伝子型Aaの頻度(2pq)",
+  desc:"(A の卵 × a の精子)と(a の卵 × A の精子)の2通りがあり、それぞれ pq。合わせて 2pq になる。図では2つの長方形の面積の合計。p = q = 0.5 のとき最大で 0.5 となる。",
+  eq:"Aa = pq + pq = 2pq"},
+ {id:"aa", n:7, name:"遺伝子型aaの頻度(q²)",
+  desc:"a の卵(q)と a の精子(q)が受精してできる。q × q = q²。潜性形質が現れるのはこの個体だけなので、観察された潜性形質の割合から q = √(q²) と逆算できる。",
+  eq:"aa = q × q = q²"},
+ {id:"sum", n:8, name:"次世代の遺伝子型頻度と合計",
+  desc:"AA : Aa : aa = p² : 2pq : q²。これは (p + q)² を展開した形で、p + q = 1 だから合計は必ず 1 になる。この状態をハーディ・ワインベルグ平衡という。",
+  eq:"(p + q)² = p² + 2pq + q² = 1"},
+ {id:"next", n:9, name:"次世代の遺伝子頻度",
+  desc:"次世代で A がもつ割合は、AA から p²、Aa から 2pq の半分。合計すると p² + pq = p(p + q) = p となり、親世代と同じ。つまり遺伝子頻度は世代を重ねても変化せず、この集団では進化が起こらない。",
+  eq:"p′ = p² + ½ × 2pq = p(p + q) = p"}
+];
+var byId = {};
+PARTS.forEach(function(o){ byId[o.id]=o; });
+
+/* ===================== 状態 ===================== */
+var p = 0.6;
+var mode = "learn";
+var selected = null;
+var quiz = { answered:{}, correct:0, total:0, current:null };
+
+var $ = function(id){ return document.getElementById(id); };
+var f2 = function(x){ return (Math.round(x*100)/100).toFixed(2); };
+var pc = function(x){ return (Math.round(x*1000)/10).toFixed(1) + "%"; };
+
+/* ===================== タブ ===================== */
+var tabBtns = document.querySelectorAll("nav.tabs button");
+tabBtns.forEach(function(b){
+  b.addEventListener("click", function(){
+    tabBtns.forEach(function(x){ x.setAttribute("aria-selected","false"); });
+    b.setAttribute("aria-selected","true");
+    ["fig","graph","calc","cond"].forEach(function(k){
+      $("panel-"+k).classList.toggle("on", k === b.dataset.tab);
+    });
+    $("ctrl").style.display = (b.dataset.tab==="fig"||b.dataset.tab==="graph") ? "" : "none";
+    if(b.dataset.tab==="cond"){ runDrift(); }
+  });
+});
+
+/* ===================== スライダー ===================== */
+$("pslider").addEventListener("input", function(e){
+  setP(parseFloat(e.target.value));
+});
+document.querySelectorAll(".chip[data-p]").forEach(function(b){
+  b.addEventListener("click", function(){ setP(parseFloat(b.dataset.p)); $("pslider").value=b.dataset.p; });
+});
+function setP(v){
+  p = Math.min(1, Math.max(0, v));
+  draw(); drawGraph();
+}
+
+/* ===================== モード ===================== */
+$("mLearn").addEventListener("click", function(){ setMode("learn"); });
+$("mTest").addEventListener("click", function(){ setMode("test"); });
+function setMode(m){
+  mode = m;
+  document.body.classList.toggle("test", m==="test");
+  $("mLearn").setAttribute("aria-pressed", m==="learn");
+  $("mTest").setAttribute("aria-pressed", m==="test");
+  $("learnPane").style.display = (m==="learn") ? "" : "none";
+  $("testPane").style.display  = (m==="test")  ? "" : "none";
+  $("infoHead").textContent = (m==="learn") ? "説明" : "名称テスト";
+  clearSel();
+  if(m==="test"){
+    if(p < 0.3 || p > 0.75){ p = 0.6; $("pslider").value = "0.6"; }
+    $("qOpts").innerHTML = "";
+    $("judge").textContent = ""; $("qDesc").textContent = "";
+    $("qPrompt").textContent = "図の番号をタップして、その部分の名称を答えよう。";
+  }
+  draw();
+}
+$("resetQuiz").addEventListener("click", function(){
+  quiz = { answered:{}, correct:0, total:0, current:null };
+  $("qOpts").innerHTML=""; $("judge").textContent=""; $("qDesc").textContent="";
+  $("qPrompt").textContent = "図の番号をタップして、その部分の名称を答えよう。";
+  updateScore(); clearSel();
+});
+function updateScore(){
+  $("scoreLine").textContent = "正解 " + quiz.correct + " / 解答 " + quiz.total + "(全10問)";
+}
+
+/* ===================== 図のクリック ===================== */
+function clearSel(){
+  document.querySelectorAll("#dia .part").forEach(function(g){ g.classList.remove("sel"); });
+  selected = null;
+}
+document.querySelectorAll("#dia .part").forEach(function(g){
+  var handler = function(){ selectPart(g.dataset.id); };
+  g.addEventListener("click", handler);
+  g.addEventListener("keydown", function(e){
+    if(e.key==="Enter"||e.key===" "){ e.preventDefault(); handler(); }
+  });
+});
+function selectPart(rawId){
+  var id = (rawId === "aa2") ? "aa" : rawId;
+  clearSel();
+  document.querySelectorAll('#dia .part[data-id="'+rawId+'"], #dia .part[data-id="'+id+'"]').forEach(function(g){
+    g.classList.add("sel");
+  });
+  selected = id;
+  if(mode==="learn"){ showInfo(id); } else { askQuiz(id); }
+}
+function showInfo(id){
+  var o = byId[id];
+  $("infoTitle").textContent = CIRC[o.n] + " " + o.name;
+  $("infoBody").textContent = o.desc;
+  var eq = $("infoEq");
+  eq.style.display = "";
+  eq.textContent = o.eq + "   (現在 p = " + f2(p) + " のとき " + currentValue(id) + ")";
+}
+function currentValue(id){
+  var q = 1-p;
+  switch(id){
+    case "A": case "egg": case "sperm": return "p = " + f2(p) + " 、 q = " + f2(q);
+    case "a": return "q = " + f2(q);
+    case "AA": return "p² = " + f2(p*p) + " = " + pc(p*p);
+    case "Aa": return "2pq = " + f2(2*p*q) + " = " + pc(2*p*q);
+    case "aa": return "q² = " + f2(q*q) + " = " + pc(q*q);
+    case "sum": return f2(p*p) + " + " + f2(2*p*q) + " + " + f2(q*q) + " = 1.00";
+    case "next": return "p′ = " + f2(p) + " で親世代と同じ";
+    default: return "p = " + f2(p) + " 、 q = " + f2(q);
+  }
+}
+
+/* ===================== クイズ ===================== */
+function askQuiz(id){
+  var o = byId[id];
+  quiz.current = id;
+  $("qPrompt").textContent = CIRC[o.n] + " の部分の名称は?";
+  $("judge").textContent = ""; $("judge").className = "judge";
+  $("qDesc").textContent = "";
+  var opts = [o.name];
+  var pool = PARTS.filter(function(x){ return x.id !== id; });
+  for(var i=pool.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=pool[i]; pool[i]=pool[j]; pool[j]=t; }
+  opts = opts.concat(pool.slice(0,3).map(function(x){ return x.name; }));
+  for(var i2=opts.length-1;i2>0;i2--){ var j2=Math.floor(Math.random()*(i2+1)); var t2=opts[i2]; opts[i2]=opts[j2]; opts[j2]=t2; }
+  var box = $("qOpts"); box.innerHTML = "";
+  opts.forEach(function(name){
+    var b = document.createElement("button");
+    b.type="button"; b.textContent = name;
+    b.addEventListener("click", function(){ answer(b, name, o); });
+    box.appendChild(b);
+  });
+}
+function answer(btn, name, o){
+  var ok = (name === o.name);
+  Array.prototype.forEach.call($("qOpts").children, function(c){
+    c.disabled = true;
+    if(c.textContent === o.name){ c.classList.add("correct"); }
+  });
+  if(!ok){ btn.classList.add("wrong"); }
+  $("judge").textContent = ok ? "○ 正解" : "✕ 正しくは「" + o.name + "」";
+  $("judge").className = "judge " + (ok ? "o" : "x");
+  $("qDesc").textContent = o.desc;
+  if(!quiz.answered[o.id]){
+    quiz.answered[o.id] = true;
+    quiz.total++;
+    if(ok){ quiz.correct++; }
+    updateScore();
+  }
+}
+
+/* ===================== 図の描画 ===================== */
+function setAttrs(el, a){ for(var k in a){ el.setAttribute(k, a[k]); } }
+function draw(){
+  var q = 1 - p, S = 300, X = 215, Y = 230;
+  var wA = S*p, wa = S*q;
+
+  $("pread").textContent = "p = " + f2(p) + " / q = " + f2(q);
+
+  /* 遺伝子プールの帯 */
+  var PW = 632;
+  setAttrs($("poolA"), {width: Math.max(0, PW*p)});
+  setAttrs($("poolAo"), {x:64, width: Math.max(0, PW*p)});
+  setAttrs($("poola"), {x: 64+PW*p, width: Math.max(0, PW*q)});
+  setAttrs($("poolao"), {x: 64+PW*p, width: Math.max(0, PW*q)});
+  var cA = 64 + PW*p/2, ca = 64 + PW*p + PW*q/2;
+  setAttrs($("tPoolA"), {x:cA}); setAttrs($("bPoolA"), {x:cA});
+  setAttrs($("tPoola"), {x:ca}); setAttrs($("bPoola"), {x:ca});
+  $("tPoolA").textContent = "● A(p = " + f2(p) + ")";
+  $("tPoola").textContent = "■ a(q = " + f2(q) + ")";
+  show($("tPoolA"), PW*p > 130); show($("bPoolA"), PW*p > 34);
+  show($("tPoola"), PW*q > 130); show($("bPoola"), PW*q > 34);
+
+  /* 配偶子の帯 */
+  setAttrs($("eggA"), {x:X, width: wA});
+  setAttrs($("egga"), {x:X+wA, width: wa});
+  setAttrs($("tEggA"), {x:X+wA/2}); setAttrs($("tEgga"), {x:X+wA+wa/2});
+  $("tEggA").textContent = "A " + f2(p); $("tEgga").textContent = "a " + f2(q);
+  show($("tEggA"), wA>70); show($("tEgga"), wa>70);
+
+  setAttrs($("spA"), {y:Y, height: wA});
+  setAttrs($("spa"), {y:Y+wA, height: wa});
+  place($("tSpA"), 190, Y+wA/2); place($("tSpa"), 190, Y+wA+wa/2);
+  $("tSpA").textContent = "A " + f2(p); $("tSpa").textContent = "a " + f2(q);
+  show($("tSpA"), wA>70); show($("tSpa"), wa>70);
+
+  /* 面積図 */
+  setAttrs($("rAA"), {x:X, y:Y, width:wA, height:wA});
+  setAttrs($("oAA"), {x:X, y:Y, width:wA, height:wA});
+  setAttrs($("rAa1"), {x:X, y:Y+wA, width:wA, height:wa});
+  setAttrs($("oAa1"), {x:X, y:Y+wA, width:wA, height:wa});
+  setAttrs($("rAa2"), {x:X+wA, y:Y, width:wa, height:wA});
+  setAttrs($("oAa2"), {x:X+wA, y:Y, width:wa, height:wA});
+  setAttrs($("raa"), {x:X+wA, y:Y+wA, width:wa, height:wa});
+  setAttrs($("oaa"), {x:X+wA, y:Y+wA, width:wa, height:wa});
+
+  center($("tAA"), $("vAA"), $("bAA"), X+wA/2, Y+wA/2);
+  center($("tAa1"), $("vAa1"), $("bAa"), X+wA/2, Y+wA+wa/2);
+  center($("tAa2"), $("vAa2"), null,      X+wA+wa/2, Y+wA/2);
+  center($("taa"), $("vaa"), $("baa"),    X+wA+wa/2, Y+wA+wa/2);
+
+  $("vAA").textContent  = "p² = " + f2(p*p);
+  $("vAa1").textContent = "pq = " + f2(p*q);
+  $("vAa2").textContent = "pq = " + f2(p*q);
+  $("vaa").textContent  = "q² = " + f2(q*q);
+
+  var bigAA = (wA>78), bigAa1 = (wA>78 && wa>66), bigAa2 = (wa>78 && wA>66), bigaa = (wa>78);
+  show($("tAA"), bigAA); show($("vAA"), bigAA); show($("bAA"), wA>30);
+  show($("tAa1"), bigAa1); show($("vAa1"), bigAa1); show($("bAa"), wA>30 && wa>26);
+  show($("tAa2"), bigAa2); show($("vAa2"), bigAa2);
+  show($("taa"), bigaa); show($("vaa"), bigaa); show($("baa"), wa>30);
+
+  /* 右のまとめ */
+  $("sAA").textContent = "● AA = p² = " + f2(p*p);
+  $("sAa").textContent = "▲ Aa = 2pq = " + f2(2*p*q);
+  $("saa").textContent = "■ aa = q² = " + f2(q*q);
+  $("nextEq").textContent = "p′ = p² + ½ × 2pq = p(p + q) = p = " + f2(p) + " 、 q′ = q = " + f2(1-p) + " → 遺伝子頻度は変化しない";
+
+  if(mode==="learn" && selected){ showInfo(selected); }
+}
+function show(el, cond){ if(el){ el.style.visibility = cond ? "visible" : "hidden"; } }
+function center(t1, t2, badge, cx, cy){
+  if(t1){ setAttrs(t1, {x:cx, y:cy-4}); }
+  if(t2){ setAttrs(t2, {x:cx, y:cy+18}); }
+  if(badge){ setAttrs(badge, {x:cx, y:cy+7}); }
+}
+function place(t, x, y){
+  setAttrs(t, {x:x, y:y, transform:"rotate(-90,"+x+","+y+")"});
+}
+
+/* ===================== グラフ ===================== */
+function gx(v){ return 70 + v*450; }
+function gy(v){ return 330 - v*290; }
+function drawGraph(){
+  var ticks = $("ticks"), grid = $("grid"), curves = $("curves"), dots = $("dots");
+  if(!curves.dataset.done){
+    var g = "", tk = "";
+    for(var i=0;i<=5;i++){
+      var v = i/5;
+      g += '<line x1="'+gx(v)+'" y1="40" x2="'+gx(v)+'" y2="330" stroke="#dde2e8" stroke-width="1"/>';
+      g += '<line x1="70" y1="'+gy(v)+'" x2="520" y2="'+gy(v)+'" stroke="#dde2e8" stroke-width="1"/>';
+      tk += '<text class="svgtxt svgnum" x="'+gx(v)+'" y="350" font-size="12" text-anchor="middle">'+v.toFixed(1)+'</text>';
+      tk += '<text class="svgtxt svgnum" x="62" y="'+(gy(v)+5)+'" font-size="12" text-anchor="end">'+v.toFixed(1)+'</text>';
+    }
+    grid.innerHTML = g; ticks.innerHTML = tk;
+    var cAA="", cAa="", caa="";
+    for(var k=0;k<=100;k++){
+      var x = k/100, y1=x*x, y2=2*x*(1-x), y3=(1-x)*(1-x);
+      cAA += gx(x)+","+gy(y1)+" "; cAa += gx(x)+","+gy(y2)+" "; caa += gx(x)+","+gy(y3)+" ";
+    }
+    curves.innerHTML =
+      '<polyline points="'+cAA+'" fill="none" stroke="#2a4d8f" stroke-width="3.5"/>'+
+      '<polyline points="'+cAa+'" fill="none" stroke="#1d6f68" stroke-width="3.5" stroke-dasharray="12 7"/>'+
+      '<polyline points="'+caa+'" fill="none" stroke="#a86412" stroke-width="3.5" stroke-dasharray="2 6" stroke-linecap="round"/>'+
+      '<text class="svgtxt" x="486" y="'+(gy(1)+2)+'" font-size="13" font-weight="700" fill="#2a4d8f">● AA</text>'+
+      '<text class="svgtxt" x="300" y="'+(gy(0.5)-10)+'" font-size="13" font-weight="700" fill="#1d6f68" text-anchor="middle">▲ Aa(最大 0.5)</text>'+
+      '<text class="svgtxt" x="76" y="'+(gy(1)+2)+'" font-size="13" font-weight="700" fill="#a86412">■ aa</text>';
+    curves.dataset.done = "1";
+  }
+  var q = 1-p;
+  $("pline").setAttribute("x1", gx(p)); $("pline").setAttribute("x2", gx(p));
+  dots.innerHTML =
+    '<circle cx="'+gx(p)+'" cy="'+gy(p*p)+'" r="7" fill="#2a4d8f" stroke="#fff" stroke-width="2"/>'+
+    '<rect x="'+(gx(p)-6.5)+'" y="'+(gy(2*p*q)-6.5)+'" width="13" height="13" fill="#1d6f68" stroke="#fff" stroke-width="2" transform="rotate(45 '+gx(p)+' '+gy(2*p*q)+')"/>'+
+    '<rect x="'+(gx(p)-6)+'" y="'+(gy(q*q)-6)+'" width="12" height="12" fill="#a86412" stroke="#fff" stroke-width="2"/>';
+  $("gRead").textContent = "p = " + f2(p) + " のとき  AA " + pc(p*p) + " / Aa " + pc(2*p*q) + " / aa " + pc(q*q);
+}
+
+/* ===================== 計算演習 ===================== */
+var QS = [0.01,0.04,0.09,0.16,0.25,0.36,0.49,0.64];
+var cur = {};
+function newQuestion(){
+  var q2 = QS[Math.floor(Math.random()*QS.length)];
+  var q = Math.round(Math.sqrt(q2)*100)/100;
+  var pp = Math.round((1-q)*100)/100;
+  var het = Math.round(2*pp*q*1000)/10;
+  cur = {q2:q2, q:q, p:pp, het:het};
+  $("qText").innerHTML = "ある動物の大きな集団で、対立遺伝子 A(顕性)と a(潜性)について調べたところ、"
+    + "潜性形質を示す個体(遺伝子型 aa)が集団全体の <b>" + (q2*100).toFixed(0) + " %</b> であった。"
+    + "この集団でハーディ・ワインベルグの法則が成り立つとして、次を求めよ。";
+  ["ansQ","ansP","ansH"].forEach(function(i){ $(i).value=""; $(i).style.borderColor="#c3ccd6"; });
+  $("calcJudge").textContent=""; $("sol").style.display="none";
+}
+function near(v, t){ return isFinite(v) && Math.abs(v-t) <= 0.011; }
+$("grade").addEventListener("click", function(){
+  var a1 = parseFloat($("ansQ").value), a2 = parseFloat($("ansP").value), a3 = parseFloat($("ansH").value);
+  var r1 = near(a1, cur.q), r2 = near(a2, cur.p), r3 = isFinite(a3) && Math.abs(a3-cur.het) <= 0.6;
+  mark($("ansQ"), r1); mark($("ansP"), r2); mark($("ansH"), r3);
+  var n = (r1?1:0)+(r2?1:0)+(r3?1:0);
+  $("calcJudge").textContent = (n===3 ? "○ 全問正解" : "正解 " + n + " / 3(赤枠をもう一度見直そう)");
+  $("calcJudge").className = "judge " + (n===3 ? "o" : "x");
+});
+function mark(el, ok){ el.style.borderColor = ok ? "#186a4a" : "#9a2b2b"; }
+$("newq").addEventListener("click", newQuestion);
+$("showSol").addEventListener("click", function(){
+  var s = $("sol");
+  s.style.display = (s.style.display==="none") ? "" : "none";
+  s.innerHTML =
+    '<div class="eq formula">q² = ' + cur.q2.toFixed(2) + ' → q = √' + cur.q2.toFixed(2) + ' = ' + cur.q.toFixed(2) + '</div>' +
+    '<div class="eq formula">p = 1 − q = 1 − ' + cur.q.toFixed(2) + ' = ' + cur.p.toFixed(2) + '</div>' +
+    '<div class="eq formula">Aa = 2pq = 2 × ' + cur.p.toFixed(2) + ' × ' + cur.q.toFixed(2) + ' = ' + (2*cur.p*cur.q).toFixed(4) + ' = ' + cur.het.toFixed(1) + ' %</div>' +
+    '<p class="note">参考:AA = p² = ' + (cur.p*cur.p).toFixed(4) + '(' + (cur.p*cur.p*100).toFixed(1) + ' %)。顕性形質を示す個体は AA と Aa の合計 ' + ((cur.p*cur.p + 2*cur.p*cur.q)*100).toFixed(1) + ' % で、そのうち多くが Aa であることに注意。</p>';
+});
+
+/* ===================== 遺伝的浮動 ===================== */
+var Nsel = 10;
+document.querySelectorAll(".chip[data-n]").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll(".chip[data-n]").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+    b.setAttribute("aria-pressed","true");
+    Nsel = parseInt(b.dataset.n,10);
+    runDrift();
+  });
+});
+$("runDrift").addEventListener("click", runDrift);
+function runDrift(){
+  var G = 50, N = Nsel, lines = [], dash = ["","10 6","2 6","14 5 3 5","6 4 1 4"];
+  var colors = ["#2a4d8f","#a86412","#1d6f68","#182028","#7a4b8f"];
+  var out = "", fixed = 0, lost = 0;
+  for(var s=0;s<5;s++){
+    var freq = 0.5, pts = [];
+    for(var g=0;g<=G;g++){
+      pts.push((60 + g/G*470).toFixed(1) + "," + (290 - freq*270).toFixed(1));
+      var cnt = 0;
+      for(var k=0;k<2*N;k++){ if(Math.random() < freq){ cnt++; } }
+      freq = cnt/(2*N);
+    }
+    if(freq >= 0.999){ fixed++; } else if(freq <= 0.001){ lost++; }
+    out += '<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+colors[s]+'" stroke-width="2.6" stroke-dasharray="'+dash[s]+'"/>';
+  }
+  $("driftLines").innerHTML = out;
+  $("driftNote").textContent = "N = " + N + " の集団を5つ、初期値 p = 0.5 から50世代。今回は固定(p=1)が " + fixed + " 集団、消失(p=0)が " + lost + " 集団。実行するたび結果は変わります。";
+}
+
+/* ===================== 初期化 ===================== */
+draw(); drawGraph(); newQuestion(); updateScore(); runDrift();
+</script>
+</body>
+</html>

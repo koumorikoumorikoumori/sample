@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>バーチャル実験:遺伝子プールとハーディ・ワインベルグの法則(高校生物)</title>
+<style>
+:root{
+  --paper:#e9edef;
+  --card:#ffffff;
+  --ink:#14202b;
+  --sub:#57646f;
+  --line:#bfc9d2;
+  --line2:#dfe5ea;
+  --indigo:#1f4f96;   /* 対立遺伝子A */
+  --amber:#9a5a0b;    /* 対立遺伝子a */
+  --teal:#14655f;     /* ヘテロ Aa */
+  --mark:#ffe9a8;     /* 蛍光ペン */
+  --ok:#166745;
+  --ng:#94282a;
+  --focus:#0b63c5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px;line-height:1.75;-webkit-text-size-adjust:100%;
+}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums}
+.f{font-family:"Times New Roman","Yu Mincho",serif;font-size:1.08em;letter-spacing:.02em}
+.wrap{max-width:1180px;margin:0 auto;padding:12px 12px 48px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card h2{font-size:1.02rem;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .no{font-size:.74rem;letter-spacing:.14em;background:var(--ink);color:#fff;padding:1px 9px;border-radius:999px}
+.card h3{font-size:.94rem;margin:14px 0 4px}
+.note{font-size:.85rem;color:var(--sub)}
+header.head{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:12px}
+header.head .eyebrow{font-size:.77rem;letter-spacing:.18em;color:var(--sub);margin:0 0 4px}
+header.head h1{font-size:1.3rem;margin:0 0 4px;letter-spacing:.02em}
+header.head p{margin:0;font-size:.9rem;color:var(--sub)}
+
+/* 方眼(実験ノート風) */
+.grid-bg{
+  background-image:
+    linear-gradient(var(--line2) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+  background-size:22px 22px;
+  background-position:-1px -1px;
+}
+
+button{font-family:inherit;color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.btn{min-height:54px;padding:10px 20px;font-size:1rem;font-weight:700;background:var(--ink);color:#fff;
+  border:none;border-radius:10px;cursor:pointer}
+.btn.sub{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn.wide{flex:1 1 150px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* プリセット */
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets button{
+  flex:1 1 200px;min-height:66px;padding:8px 12px;text-align:left;line-height:1.4;
+  font-size:.9rem;font-weight:700;background:var(--card);color:var(--sub);
+  border:2px solid var(--line);border-radius:10px;cursor:pointer}
+.presets button b{display:block;font-size:.97rem;color:var(--ink)}
+.presets button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.presets button[aria-pressed="true"] b{color:#fff}
+
+/* 条件設定 */
+.setrow{display:grid;grid-template-columns:200px 1fr;gap:8px 12px;align-items:center;
+  padding:8px 0;border-bottom:1px dashed var(--line2)}
+@media (max-width:620px){.setrow{grid-template-columns:1fr}}
+.setrow .lab{font-size:.92rem;font-weight:700}
+.setrow .lab small{display:block;font-weight:400;color:var(--sub);font-size:.78rem;line-height:1.4}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts button{min-height:46px;min-width:60px;padding:4px 12px;font-size:.92rem;font-weight:700;
+  background:#f1f4f7;border:2px solid var(--line);border-radius:8px;cursor:pointer}
+.opts button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.opts button.warn[aria-pressed="true"]{background:var(--ng);border-color:var(--ng)}
+.cond-ok{display:inline-block;font-size:.76rem;font-weight:700;padding:1px 8px;border-radius:999px;
+  border:1px solid var(--line);background:#eef3ef;color:var(--ok);white-space:nowrap}
+.cond-ng{background:#faeeee;color:var(--ng);border-color:#e0b6b6}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;max-width:340px;height:44px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:10px;background:linear-gradient(90deg,#9aa7b4,var(--indigo));border-radius:6px}
+input[type=range]::-moz-range-track{height:10px;background:linear-gradient(90deg,#9aa7b4,var(--indigo));border-radius:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;border-radius:50%;background:#fff;border:4px solid var(--ink);margin-top:-11px;cursor:pointer}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:4px solid var(--ink);cursor:pointer}
+
+/* 装置 */
+svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.genbadge{display:inline-flex;align-items:center;gap:8px;background:var(--mark);border:1px solid #d9bf62;
+  border-radius:8px;padding:4px 12px;font-weight:700;font-size:.95rem}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+
+/* 予想 */
+.guess{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.guess button{min-height:56px;padding:6px 12px;font-size:.92rem;font-weight:700;background:#f1f4f7;
+  border:2px solid var(--line);border-radius:10px;cursor:pointer;text-align:left}
+.guess button[aria-pressed="true"]{background:var(--mark);border-color:var(--ink)}
+
+/* 表 */
+.tablewrap{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+table.data{border-collapse:collapse;width:100%;font-size:.88rem}
+table.data th,table.data td{border-bottom:1px solid var(--line2);padding:5px 8px;text-align:right;white-space:nowrap}
+table.data th{background:#f1f4f7;position:sticky;top:0;text-align:right;font-size:.82rem}
+table.data th:first-child,table.data td:first-child{text-align:center}
+table.data tr.cur td{background:var(--mark);font-weight:700}
+table.data tr.first td{border-top:none}
+
+.result{background:#f1f4f7;border-left:6px solid var(--ink);border-radius:0 10px 10px 0;padding:10px 14px;margin-top:10px;font-size:.94rem}
+.result b.hl{background:var(--mark);padding:0 4px}
+.eq{background:#f1f4f7;border-left:5px solid var(--ink);padding:8px 12px;margin:8px 0;border-radius:0 8px 8px 0}
+ul.q{font-size:.94rem;padding-left:1.2em;margin:6px 0}
+ol.proc{font-size:.93rem;padding-left:1.3em;margin:4px 0}
+ol.proc li{margin-bottom:2px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.86rem;margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{display:inline-block;width:16px;height:16px;border:2px solid var(--ink)}
+.sw.c{border-radius:50%;background:#dde5f4;border-color:var(--indigo)}
+.sw.s{background:#f8e9cf;border-color:var(--amber)}
+
+details.safety{background:#fff8e8;border:1px solid #d9b877;border-radius:10px;padding:10px 14px}
+details.safety summary{font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center}
+details.safety ul{margin:6px 0 0;padding-left:1.2em;font-size:.92rem}
+details.model{background:#f1f4f7;border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin-top:10px}
+details.model summary{font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:.92rem}
+details.model ul{font-size:.88rem;padding-left:1.2em}
+.flash{animation:fl .35s ease-out}
+@keyframes fl{from{opacity:.35}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="head">
+  <p class="eyebrow">高等学校 生物 ─ 生物の進化 / 遺伝子頻度の変化</p>
+  <h1>バーチャル実験:遺伝子プールとハーディ・ワインベルグの法則</h1>
+  <p>画面の中の集団で世代を重ね、遺伝子頻度が変化するかどうかを実際に確かめます。</p>
+</header>
+
+<!-- ===== 目的・手順 ===== -->
+<div class="card">
+  <h2><span class="no">実験の目的</span>どんなときに遺伝子頻度は変化するのか</h2>
+  <p style="margin:0 0 8px;font-size:.95rem">
+    ハーディ・ワインベルグの法則は「5つの条件を満たす集団では遺伝子頻度が変化しない(=進化が起こらない)」という法則です。
+    この実験では条件を1つずつくずして、遺伝子頻度と遺伝子型頻度がどうなるかを観察します。</p>
+  <ol class="proc">
+    <li>プリセット実験を選ぶ(または条件を自分で設定する)</li>
+    <li>結果を<b>予想</b>してから実験を始める</li>
+    <li>「1世代進める」「10世代進める」で世代を重ねる</li>
+    <li>グラフ・データ表に記録された<b>遺伝子頻度 p</b> の変化を読みとる</li>
+    <li><b>実測値</b>と、法則から計算した<b>期待値</b>(<span class="f">Np²、2Npq、Nq²</span>)を比べる</li>
+    <li>予想と結果を照らし合わせて考察する</li>
+  </ol>
+</div>
+
+<!-- ===== プリセット ===== -->
+<div class="card">
+  <h2><span class="no">手順 1</span>プリセット実験を選ぶ</h2>
+  <div class="presets" id="presets">
+    <button data-k="0" aria-pressed="true"><b>実験1 5条件を満たす集団</b>基準となる実験。p は変化するか</button>
+    <button data-k="1" aria-pressed="false"><b>実験2 小さな集団(N=20)</b>条件①をくずす:遺伝的浮動</button>
+    <button data-k="2" aria-pressed="false"><b>実験3 aa が不利</b>条件③をくずす:自然選択</button>
+    <button data-k="3" aria-pressed="false"><b>実験4 A の移入がある</b>条件④をくずす:遺伝子流動</button>
+    <button data-k="4" aria-pressed="false"><b>実験5 同類交配</b>条件⑤をくずす:遺伝子型頻度のずれ</button>
+    <button data-k="5" aria-pressed="false"><b>実験6 突然変異が起こる</b>条件②をくずす:A → a</button>
+  </div>
+  <p class="note" id="presetNote" style="margin:10px 0 0"></p>
+</div>
+
+<!-- ===== 条件設定 ===== -->
+<div class="card">
+  <h2><span class="no">手順 2</span>実験条件を設定する</h2>
+  <div class="setrow">
+    <div class="lab">集団の大きさ N<small>条件① 個体数が十分に大きい</small></div>
+    <div><div class="opts" id="optN"></div><span class="cond-ok" id="cN"></span></div>
+  </div>
+  <div class="setrow">
+    <div class="lab">突然変異率(A → a)<small>条件② 突然変異が起こらない</small></div>
+    <div><div class="opts" id="optMu"></div><span class="cond-ok" id="cMu"></span></div>
+  </div>
+  <div class="setrow">
+    <div class="lab">aa の相対的な生存・繁殖力<small>条件③ 自然選択が働かない</small></div>
+    <div><div class="opts" id="optW"></div><span class="cond-ok" id="cW"></span></div>
+  </div>
+  <div class="setrow">
+    <div class="lab">移入率(外部集団はすべて A)<small>条件④ 移入・移出がない</small></div>
+    <div><div class="opts" id="optM"></div><span class="cond-ok" id="cM"></span></div>
+  </div>
+  <div class="setrow">
+    <div class="lab">同類交配の割合<small>条件⑤ 自由な交配(任意交配)が行われる</small></div>
+    <div><div class="opts" id="optC"></div><span class="cond-ok" id="cC"></span></div>
+  </div>
+  <div class="setrow" style="border-bottom:none">
+    <div class="lab">はじめの遺伝子頻度 p<small>第0世代の A の頻度</small></div>
+    <div class="row">
+      <input type="range" id="p0" min="0.1" max="0.9" step="0.05" value="0.5" aria-label="はじめの遺伝子頻度p">
+      <span class="num" style="font-weight:700">p₀ = <span id="p0v">0.50</span></span>
+      <label style="font-size:.9rem;font-weight:700;margin-left:auto;display:flex;align-items:center;gap:6px;min-height:44px">
+        <input type="checkbox" id="rep" style="width:22px;height:22px"> 同じ条件で5集団(反復実験)
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 予想 ===== -->
+<div class="card">
+  <h2><span class="no">手順 3</span>結果を予想する</h2>
+  <p style="margin:0 0 8px;font-size:.95rem">50世代後、A の遺伝子頻度 p はどうなっていると思いますか。</p>
+  <div class="guess" id="guess">
+    <button data-g="same" aria-pressed="false">ほとんど変わらない</button>
+    <button data-g="up" aria-pressed="false">大きく増える</button>
+    <button data-g="down" aria-pressed="false">大きく減る</button>
+    <button data-g="rand" aria-pressed="false">偶然で大きく上下する</button>
+  </div>
+</div>
+
+<!-- ===== 装置 ===== -->
+<div class="card grid-bg">
+  <h2><span class="no">手順 4</span>実験装置(遺伝子プールと集団)</h2>
+  <div class="row" style="margin-bottom:8px">
+    <span class="genbadge">第 <span class="num" id="genNo">0</span> 世代</span>
+    <span class="num" style="font-weight:700" id="curFreq"></span>
+  </div>
+  <svg id="app" viewBox="0 0 680 350" role="img" aria-labelledby="appDesc"></svg>
+  <p id="appDesc" class="note" style="margin:6px 0 0">左のトレイは配偶子(遺伝子プール)の模式図100個ぶん、右のカプセルは1個体(対立遺伝子2個)を表します。</p>
+  <div class="legend">
+    <span><span class="sw c"></span>● 対立遺伝子 A(顕性)</span>
+    <span><span class="sw s"></span>■ 対立遺伝子 a(潜性)</span>
+    <span>●● = AA(実線)</span>
+    <span>●■ = Aa(破線)</span>
+    <span>■■ = aa(点線)</span>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn wide" id="s1">▶ 1世代進める</button>
+    <button class="btn wide" id="s10">▶▶ 10世代進める</button>
+    <button class="btn sub wide" id="auto">連続実行</button>
+    <button class="btn sub wide" id="reset">↺ 第0世代に戻す</button>
+  </div>
+  <p class="note" id="runNote" style="margin:8px 0 0"></p>
+</div>
+
+<!-- ===== 結果 ===== -->
+<div class="split">
+  <div class="card">
+    <h2><span class="no">結果 1</span>遺伝子頻度 p の世代変化</h2>
+    <svg id="chart" viewBox="0 0 560 360" role="img" aria-label="世代ごとの遺伝子頻度pの変化のグラフ"></svg>
+    <p class="note" id="chartNote"></p>
+  </div>
+  <div class="card">
+    <h2><span class="no">結果 2</span>実測値と期待値の比較</h2>
+    <svg id="bars" viewBox="0 0 560 300" role="img" aria-label="遺伝子型ごとの実測個体数と期待個体数の比較"></svg>
+    <div class="eq f" id="expEq"></div>
+    <p class="note">期待値は「いまの p から、法則どおりランダムに受精したと仮定したときの個体数」です。実測値との差が小さいほど、集団はハーディ・ワインベルグ平衡に近い状態にあります。</p>
+  </div>
+</div>
+
+<!-- ===== 記録と考察 ===== -->
+<div class="card">
+  <h2><span class="no">手順 5</span>記録(データ表)と考察</h2>
+  <div class="tablewrap">
+    <table class="data" id="tbl">
+      <thead><tr><th>世代</th><th>AA</th><th>Aa</th><th>aa</th><th>p</th><th>q</th><th>Aa期待</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="result" id="summary"></div>
+  <h3>考察の問い</h3>
+  <ul class="q" id="questions"></ul>
+  <details class="model">
+    <summary>このシミュレーションのモデルについて(教員向け・発展)</summary>
+    <ul>
+      <li>世代は重ならないものとし、毎世代 N 個体が新しくつくられます(N は一定)。</li>
+      <li>親は生存・繁殖力(相対値)に比例して選ばれ、それぞれが対立遺伝子を1個ずつ配偶子として出します。</li>
+      <li>同類交配は「同じ遺伝子型の個体どうしが交配する割合」として簡単化しています。実際の非任意交配はもっと多様です。</li>
+      <li>移入は「外部集団から来た個体で置きかわる」として扱い、外部集団の遺伝子頻度は A のみ(p = 1)としています。</li>
+      <li>乱数を使うため、同じ条件でも結果は毎回変わります。<b>1回の結果だけで結論を出さず、繰り返して傾向をみる</b>ことが大切です。</li>
+      <li>実際の集団では複数の要因が同時に働くため、変化のようすはこのモデルより複雑になります。</li>
+    </ul>
+  </details>
+</div>
+
+<footer>
+  <details class="safety">
+    <summary>⚠ 実物のビーズ等で同じ実験を行うときの安全上の注意</summary>
+    <ul>
+      <li><b>小さい部品の誤飲・窒息に注意。</b>ビーズ・おはじき・豆などを口や鼻に入れない。実習後は必ず手を洗う。</li>
+      <li>豆類・ナッツ類を使う場合は<b>食物アレルギー</b>のある生徒がいないか事前に確認する。教材の豆は絶対に食べない。</li>
+      <li>床に落ちたビーズは滑って転倒の原因になる。落としたらすぐ拾い、終了時に数がそろっているか確認する。</li>
+      <li>袋から取り出すときは<b>中を見ずに</b>取り出す。目を近づけて中をのぞきこまない。</li>
+      <li><b>ヒトの形質や遺伝性疾患を題材にする場合</b>:個人や家族のことを答えたくない生徒に無理をさせない。特定の形質を「優れている/劣っている」と表現しない(顕性・潜性は現れ方の違いであって優劣ではない)。</li>
+      <li>この画面上の実験では薬品・火気・電気器具は使用しません。実際の実験と組み合わせる場合は、その実験の注意事項に従ってください。</li>
+    </ul>
+  </details>
+  <p class="note" style="text-align:center;margin-top:12px">高等学校 生物「生物の進化」/ ハーディ・ワインベルグの法則 ─ 授業用バーチャル実験教材</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+var $=function(id){return document.getElementById(id);};
+function f2(x){return (Math.round(x*100)/100).toFixed(2);}
+function f3(x){return (Math.round(x*1000)/1000).toFixed(3);}
+
+/* ================== 設定 ================== */
+var CFG={N:100,mu:0,waa:1,m:0,c:0,p0:0.5,rep:false};
+var OPTS={
+  N:[{v:20,t:"20"},{v:50,t:"50"},{v:100,t:"100"},{v:200,t:"200"}],
+  mu:[{v:0,t:"0"},{v:0.005,t:"0.005"},{v:0.02,t:"0.02"},{v:0.05,t:"0.05"}],
+  waa:[{v:1,t:"1.0"},{v:0.8,t:"0.8"},{v:0.5,t:"0.5"},{v:0.2,t:"0.2"}],
+  m:[{v:0,t:"0"},{v:0.05,t:"0.05"},{v:0.1,t:"0.1"},{v:0.2,t:"0.2"}],
+  c:[{v:0,t:"0"},{v:0.4,t:"0.4"},{v:0.8,t:"0.8"},{v:1,t:"1.0"}]
+};
+var PRESETS=[
+ {n:"実験1 5条件を満たす集団",N:100,mu:0,waa:1,m:0,c:0,p0:0.5,rep:false,
+  note:"5つの条件をすべて満たした集団です。p はほとんど変化しないはずですが、個体数が有限なので小さなゆらぎは生じます。"},
+ {n:"実験2 小さな集団",N:20,mu:0,waa:1,m:0,c:0,p0:0.5,rep:true,
+  note:"個体数を20にしました。5集団を同時に走らせ、偶然による変化(遺伝的浮動)のばらつきを比べましょう。"},
+ {n:"実験3 aa が不利",N:100,mu:0,waa:0.2,m:0,c:0,p0:0.5,rep:false,
+  note:"aa の個体の生存・繁殖力を 0.2 にしました。自然選択が働くと p はどう変わるでしょうか。"},
+ {n:"実験4 A の移入がある",N:100,mu:0,waa:1,m:0.1,c:0,p0:0.5,rep:false,
+  note:"毎世代 10 % の個体が、A だけをもつ外部集団から移入してきます。"},
+ {n:"実験5 同類交配",N:100,mu:0,waa:1,m:0,c:1,p0:0.5,rep:false,
+  note:"同じ遺伝子型どうしだけが交配します。p と、AA・Aa・aa の割合の両方に注目してください。"},
+ {n:"実験6 突然変異",N:100,mu:0.05,waa:1,m:0,c:0,p0:0.8,rep:false,
+  note:"配偶子の A が 5 % の割合で a に変わります(変化を見やすくするため、教科書的な値よりかなり大きくしてあります)。"}
+];
+
+/* ================== 集団の状態 ================== */
+var pops=[], hist=[], gen=0, timer=null, guess=null, presetIdx=0;
+/* 遺伝子型 0=AA, 1=Aa, 2=aa / 対立遺伝子 0=A, 1=a */
+
+function makePop(N,p0){
+  var a=[],i;
+  for(i=0;i<N;i++){
+    var x=(Math.random()<p0?0:1)+(Math.random()<p0?0:1);
+    a.push(x);
+  }
+  return a;
+}
+function counts(pop){
+  var c=[0,0,0],i;
+  for(i=0;i<pop.length;i++){ c[pop[i]]++; }
+  return c;
+}
+function freqP(pop){
+  var c=counts(pop);
+  return (2*c[0]+c[1])/(2*pop.length);
+}
+function gamete(g){ return (g===0)?0:(g===2)?1:(Math.random()<0.5?0:1); }
+
+function step(pop){
+  var N=pop.length,i,w=[1,1,CFG.waa],cum=[],tot=0;
+  for(i=0;i<N;i++){ tot+=w[pop[i]]; cum.push(tot); }
+  if(tot<=0){ return pop.slice(); }
+  var byG=[[],[],[]];
+  for(i=0;i<N;i++){ byG[pop[i]].push(i); }
+  function pickW(){
+    var r=Math.random()*tot,lo=0,hi=N-1;
+    while(lo<hi){ var mid=(lo+hi)>>1; if(cum[mid]<r){lo=mid+1;} else {hi=mid;} }
+    return lo;
+  }
+  function pickSame(g){
+    var L=byG[g];
+    if(L.length===0){ return pickW(); }
+    return L[Math.floor(Math.random()*L.length)];
+  }
+  var next=[];
+  for(i=0;i<N;i++){
+    if(Math.random()<CFG.m){ next.push(0); continue; }      /* 移入個体はAA(外部集団 p=1) */
+    var i1=pickW();
+    var i2=(Math.random()<CFG.c)?pickSame(pop[i1]):pickW();
+    var a1=gamete(pop[i1]), a2=gamete(pop[i2]);
+    if(a1===0&&Math.random()<CFG.mu){ a1=1; }
+    if(a2===0&&Math.random()<CFG.mu){ a2=1; }
+    next.push(a1+a2);
+  }
+  return next;
+}
+
+function resetExp(){
+  stopAuto();
+  var k=CFG.rep?5:1,i;
+  pops=[]; for(i=0;i<k;i++){ pops.push(makePop(CFG.N,CFG.p0)); }
+  gen=0;
+  hist=[recRow()];
+  render(true);
+}
+function recRow(){
+  var c=counts(pops[0]);
+  var row={g:gen,c:c,p:freqP(pops[0]),ps:pops.map(freqP)};
+  return row;
+}
+function advance(n){
+  var i,j;
+  for(i=0;i<n;i++){
+    if(gen>=100){ break; }
+    for(j=0;j<pops.length;j++){ pops[j]=step(pops[j]); }
+    gen++;
+    hist.push(recRow());
+  }
+  render(true);
+}
+
+/* ================== 描画:装置 ================== */
+var DEFS='<defs>'
+ +'<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
+ +'<path d="M0,0 L10,5 L0,10 z" fill="#57646f"/></marker>'
+ +'<pattern id="pA" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+ +'<rect width="9" height="9" fill="#dde5f4"/><line x1="0" y1="0" x2="0" y2="9" stroke="#1f4f96" stroke-width="2.6"/></pattern>'
+ +'<pattern id="pAa" width="9" height="9" patternUnits="userSpaceOnUse">'
+ +'<rect width="9" height="9" fill="#daece9"/><line x1="0" y1="0" x2="9" y2="0" stroke="#14655f" stroke-width="2.4"/></pattern>'
+ +'<pattern id="pa" width="9" height="9" patternUnits="userSpaceOnUse">'
+ +'<rect width="9" height="9" fill="#f8e9cf"/><circle cx="4.5" cy="4.5" r="1.9" fill="#9a5a0b"/></pattern>'
+ +'</defs>';
+function T(x,y,s,o){o=o||{};return '<text x="'+x+'" y="'+y+'" font-size="'+(o.s||13)+'" fill="'+(o.c||"#14202b")+'"'
+ +' text-anchor="'+(o.a||"start")+'" font-weight="'+(o.w||"400")+'"'
+ +(o.r?' transform="rotate('+o.r+','+x+','+y+')"':'')
+ +(o.mono?' font-family="ui-monospace,Menlo,Consolas,monospace"':' font-family="Hiragino Kaku Gothic ProN,Yu Gothic,Noto Sans JP,sans-serif"')
+ +'>'+s+'</text>';}
+
+function drawApp(){
+  var pop=pops[0], c=counts(pop), N=pop.length, p=freqP(pop), q=1-p;
+  var s=DEFS,i;
+
+  /* --- 左:遺伝子プール --- */
+  s+=T(24,26,"遺伝子プール(配偶子)",{w:"700",s:14});
+  s+=T(24,44,"模式図100個ぶん(実際は 2N = "+(2*N)+" 個)",{s:11.5,c:"#57646f"});
+  s+='<rect x="20" y="54" width="248" height="252" rx="12" fill="#ffffff" stroke="#14202b" stroke-width="2.5"/>';
+  s+='<rect x="20" y="54" width="248" height="26" rx="12" fill="#f1f4f7" stroke="none"/>';
+  var nA=Math.round(100*p);
+  for(i=0;i<100;i++){
+    var cx=42+(i%10)*23, cy=104+Math.floor(i/10)*22;
+    if(i<nA){ s+='<circle cx="'+cx+'" cy="'+cy+'" r="7.5" fill="#dde5f4" stroke="#1f4f96" stroke-width="2"/>'; }
+    else { s+='<rect x="'+(cx-6.8)+'" y="'+(cy-6.8)+'" width="13.6" height="13.6" fill="#f8e9cf" stroke="#9a5a0b" stroke-width="2"/>'; }
+  }
+  s+=T(30,326,"● A = "+f2(p),{w:"700",s:13,c:"#1f4f96",mono:true});
+  s+=T(160,326,"■ a = "+f2(q),{w:"700",s:13,c:"#9a5a0b",mono:true});
+
+  /* --- 中央:矢印 --- */
+  s+='<path d="M276,150 L326,150" stroke="#57646f" stroke-width="2.5" marker-end="url(#ar)"/>';
+  s+='<path d="M276,190 L326,190" stroke="#57646f" stroke-width="2.5" marker-end="url(#ar)"/>';
+  s+=T(301,138,"無作為に",{a:"middle",s:11.5,c:"#57646f"});
+  s+=T(301,214,"2個ずつ",{a:"middle",s:11.5,c:"#57646f"});
+  s+=T(301,230,"取り出す",{a:"middle",s:11.5,c:"#57646f"});
+
+  /* --- 右:個体 --- */
+  s+=T(340,26,"次の世代の集団(N = "+N+" 個体)",{w:"700",s:14});
+  s+=T(340,44,"カプセル1個 = 1個体(対立遺伝子2個)",{s:11.5,c:"#57646f"});
+  var cols=(N<=20)?5:(N<=50)?8:(N<=100)?10:14;
+  var cw=(N<=20)?46:(N<=50)?38:(N<=100)?31:22;
+  var ch=(N<=20)?26:(N<=50)?22:(N<=100)?18:13;
+  var gx0=340, gy0=58;
+  var order=pop.slice().sort(function(a,b){return a-b;});
+  for(i=0;i<N;i++){
+    var x=gx0+(i%cols)*(cw+3), y=gy0+Math.floor(i/cols)*(ch+3);
+    var g=order[i];
+    var fill=(g===0)?"#dde5f4":(g===1)?"#daece9":"#f8e9cf";
+    var st=(g===0)?"#1f4f96":(g===1)?"#14655f":"#9a5a0b";
+    var dash=(g===0)?"":(g===1)?"4 2.6":"1.2 2.6";
+    s+='<rect x="'+x+'" y="'+y+'" width="'+cw+'" height="'+ch+'" rx="'+(ch/2)+'" fill="'+fill+'" stroke="'+st+'" stroke-width="1.8" stroke-dasharray="'+dash+'"/>';
+    var r=Math.min(ch*0.3,4.6), x1=x+cw*0.29, x2=x+cw*0.71, yc=y+ch/2;
+    if(g===0||g===1){ s+='<circle cx="'+x1+'" cy="'+yc+'" r="'+r+'" fill="#1f4f96"/>'; }
+    else { s+='<rect x="'+(x1-r)+'" y="'+(yc-r)+'" width="'+(2*r)+'" height="'+(2*r)+'" fill="#9a5a0b"/>'; }
+    if(g===0){ s+='<circle cx="'+x2+'" cy="'+yc+'" r="'+r+'" fill="#1f4f96"/>'; }
+    else { s+='<rect x="'+(x2-r)+'" y="'+(yc-r)+'" width="'+(2*r)+'" height="'+(2*r)+'" fill="#9a5a0b"/>'; }
+  }
+  var rows=Math.ceil(N/cols), by=gy0+rows*(ch+3)+10;
+  by=Math.max(by,296);
+  s+=T(340,by+12,"●● AA "+c[0]+" 個体",{s:12.5,w:"700",c:"#1f4f96",mono:true});
+  s+=T(460,by+12,"●■ Aa "+c[1]+" 個体",{s:12.5,w:"700",c:"#14655f",mono:true});
+  s+=T(580,by+12,"■■ aa "+c[2]+" 個体",{s:12.5,w:"700",c:"#9a5a0b",mono:true});
+
+  $("app").setAttribute("viewBox","0 0 680 "+(by+28));
+  $("app").innerHTML=s;
+  $("genNo").textContent=gen;
+  $("curFreq").textContent="p = "+f2(p)+" / q = "+f2(q);
+}
+
+/* ================== 描画:グラフ ================== */
+function drawChart(){
+  var G=Math.max(20,Math.min(100,Math.ceil(Math.max(gen,1)/10)*10));
+  function X(g){return 58+g/G*472;}
+  function Y(v){return 302-v*262;}
+  var s="",i;
+  for(i=0;i<=5;i++){
+    var v=i/5;
+    s+='<line x1="58" y1="'+Y(v)+'" x2="530" y2="'+Y(v)+'" stroke="#dfe5ea" stroke-width="1"/>';
+    s+=T(50,Y(v)+5,v.toFixed(1),{a:"end",s:12,mono:true});
+  }
+  var tick=(G<=20)?5:(G<=50)?10:20;
+  for(i=0;i<=G;i+=tick){
+    s+='<line x1="'+X(i)+'" y1="40" x2="'+X(i)+'" y2="302" stroke="#dfe5ea" stroke-width="1"/>';
+    s+=T(X(i),322,i+"",{a:"middle",s:12,mono:true});
+  }
+  s+='<line x1="58" y1="40" x2="58" y2="302" stroke="#14202b" stroke-width="2"/>';
+  s+='<line x1="58" y1="302" x2="530" y2="302" stroke="#14202b" stroke-width="2"/>';
+  s+=T(294,346,"世代",{a:"middle",s:13});
+  s+=T(16,175,"A の遺伝子頻度 p",{a:"middle",s:13,r:-90});
+  /* 初期値の基準線 */
+  s+='<line x1="58" y1="'+Y(CFG.p0)+'" x2="530" y2="'+Y(CFG.p0)+'" stroke="#94282a" stroke-width="1.6" stroke-dasharray="7 5"/>';
+  s+=T(530,Y(CFG.p0)-6,"はじめの p",{a:"end",s:11.5,c:"#94282a",w:"700"});
+  /* 反復集団 */
+  var dash=["","9 5","2 5","12 4 3 4","6 4 1 4"];
+  var k=pops.length,j;
+  for(j=k-1;j>=1;j--){
+    var pts="";
+    for(i=0;i<hist.length;i++){ pts+=X(hist[i].g)+","+Y(hist[i].ps[j])+" "; }
+    s+='<polyline points="'+pts+'" fill="none" stroke="#8c98a4" stroke-width="2" stroke-dasharray="'+dash[j]+'"/>';
+  }
+  var pts0="";
+  for(i=0;i<hist.length;i++){ pts0+=X(hist[i].g)+","+Y(hist[i].p)+" "; }
+  s+='<polyline points="'+pts0+'" fill="none" stroke="#14202b" stroke-width="3.4"/>';
+  var last=hist[hist.length-1];
+  s+='<circle cx="'+X(last.g)+'" cy="'+Y(last.p)+'" r="6.5" fill="#14202b" stroke="#fff" stroke-width="2"/>';
+  s+=T(X(last.g)-8,Y(last.p)-14,"p = "+f2(last.p),{a:"end",s:12.5,w:"700",mono:true});
+  $("chart").innerHTML=DEFS+s;
+  $("chartNote").textContent=(k>1)
+    ? "太い実線が集団1、細い破線・点線が同じ条件の別の4集団です。赤の破線ははじめの p を示します。"
+    : "赤の破線ははじめの p を示します。線がこの高さから離れるほど、遺伝子頻度が変化したことになります。";
+}
+
+/* ================== 描画:実測 vs 期待 ================== */
+function drawBars(){
+  var pop=pops[0],N=pop.length,c=counts(pop),p=freqP(pop),q=1-p;
+  var exp=[N*p*p,N*2*p*q,N*q*q];
+  var mx=Math.max(c[0],c[1],c[2],exp[0],exp[1],exp[2],1);
+  var names=["●● AA","●■ Aa","■■ aa"],pats=["url(#pA)","url(#pAa)","url(#pa)"],cols=["#1f4f96","#14655f","#9a5a0b"];
+  var eqs=["Np²","2Npq","Nq²"];
+  var s="",i,base=224;
+  s+='<line x1="56" y1="'+base+'" x2="540" y2="'+base+'" stroke="#14202b" stroke-width="2"/>';
+  for(i=0;i<3;i++){
+    var x0=80+i*160;
+    var h1=c[i]/mx*168, h2=exp[i]/mx*168;
+    s+='<rect x="'+x0+'" y="'+(base-h1)+'" width="52" height="'+h1+'" fill="'+pats[i]+'" stroke="'+cols[i]+'" stroke-width="2"/>';
+    s+='<rect x="'+(x0+62)+'" y="'+(base-h2)+'" width="52" height="'+h2+'" fill="#ffffff" stroke="#14202b" stroke-width="2" stroke-dasharray="6 4"/>';
+    s+=T(x0+26,base-h1-8,c[i]+"",{a:"middle",s:13,w:"700",mono:true});
+    s+=T(x0+88,base-h2-8,exp[i].toFixed(1),{a:"middle",s:13,w:"700",mono:true,c:"#57646f"});
+    s+=T(x0+57,base+22,names[i],{a:"middle",s:13.5,w:"700",c:cols[i]});
+    s+=T(x0+57,base+40,"期待 "+eqs[i]+" = "+exp[i].toFixed(1),{a:"middle",s:11.5,c:"#57646f",mono:true});
+  }
+  s+='<rect x="60" y="20" width="18" height="14" fill="#dde5f4" stroke="#14202b" stroke-width="2"/>';
+  s+=T(84,32,"実測(数えた個体数)",{s:12.5,w:"700"});
+  s+='<rect x="260" y="20" width="18" height="14" fill="#fff" stroke="#14202b" stroke-width="2" stroke-dasharray="5 3"/>';
+  s+=T(284,32,"期待(法則から計算した値)",{s:12.5,w:"700"});
+  $("bars").setAttribute("viewBox","0 0 560 "+(base+58));
+  $("bars").innerHTML=DEFS+s;
+  $("expEq").innerHTML="N = "+N+" 、 p = "+f2(p)+" 、 q = "+f2(q)+"  →  Np² = "+exp[0].toFixed(1)
+    +" 、 2Npq = "+exp[1].toFixed(1)+" 、 Nq² = "+exp[2].toFixed(1);
+}
+
+/* ================== 表とまとめ ================== */
+function drawTable(){
+  var tb=$("tbody"); tb.innerHTML="";
+  var rows=hist.slice(-14), i, N=CFG.N;
+  if(hist.length>14){
+    var r0=hist[0];
+    tb.innerHTML+=rowHTML(r0,false)+'<tr><td colspan="7" style="text-align:center;color:#57646f">…</td></tr>';
+  }
+  for(i=0;i<rows.length;i++){
+    tb.innerHTML+=rowHTML(rows[i],rows[i].g===gen);
+  }
+  var wrap=document.querySelector(".tablewrap");
+  wrap.scrollTop=wrap.scrollHeight;
+}
+function rowHTML(r,cur){
+  var p=r.p,q=1-p,N=CFG.N;
+  return '<tr class="'+(cur?"cur":"")+'"><td class="num">'+r.g+'</td>'
+    +'<td class="num">'+r.c[0]+'</td><td class="num">'+r.c[1]+'</td><td class="num">'+r.c[2]+'</td>'
+    +'<td class="num">'+f2(p)+'</td><td class="num">'+f2(q)+'</td>'
+    +'<td class="num" style="color:#57646f">'+(2*N*p*q).toFixed(1)+'</td></tr>';
+}
+
+function drawSummary(){
+  var p=freqP(pops[0]), d=p-CFG.p0, c=counts(pops[0]), N=CFG.N, q=1-p;
+  var expAa=2*N*p*q, dAa=c[1]-expAa;
+  var s="<b>第"+gen+"世代までの結果</b><br>";
+  s+="はじめの p = "+f2(CFG.p0)+" → いまの p = <b class='hl'>"+f2(p)+"</b>(変化量 "+(d>=0?"+":"")+f2(d)+")<br>";
+  if(gen===0){
+    s+="まだ世代を進めていません。「1世代進める」から始めましょう。";
+  }else{
+    var mag=Math.abs(d);
+    s+= (mag<0.05) ? "遺伝子頻度はほとんど変化していません。"
+      : (mag<0.15) ? "遺伝子頻度に小さな変化がみられます。"
+      : "遺伝子頻度が大きく変化しました。";
+    if(pops.length>1){
+      var ps=pops.map(freqP), mn=Math.min.apply(null,ps), mx2=Math.max.apply(null,ps);
+      s+=" 5集団の p は "+f2(mn)+" ~ "+f2(mx2)+" にばらついています。";
+    }
+    s+="<br>Aa の実測 "+c[1]+" 個体 / 期待 "+expAa.toFixed(1)+" 個体(差 "+(dAa>=0?"+":"")+dAa.toFixed(1)+")。";
+    s+= (Math.abs(dAa)<Math.max(3,N*0.05))
+      ? " 遺伝子型頻度は期待値に近く、ランダムな受精が成り立っているとみてよさそうです。"
+      : " 遺伝子型頻度が期待値からずれています。交配のしかたを見直してみましょう。";
+    if(p<=0){ s+="<br><b>対立遺伝子 A は消失しました。</b>この集団ではもう p は変化しません。"; }
+    if(p>=1){ s+="<br><b>対立遺伝子 A が固定しました。</b>この集団ではもう p は変化しません。"; }
+    if(guess){
+      var real=(Math.abs(d)<0.05)?"same":(d>0.15)?"up":(d<-0.15)?"down":"rand";
+      s+="<br>あなたの予想:<b>"+({same:"ほとんど変わらない",up:"大きく増える",down:"大きく減る",rand:"偶然で大きく上下する"}[guess])+"</b> ─ ";
+      s+=(guess===real)?"<b style='color:#166745'>結果と一致しています。</b>":"結果と少し違うようです。なぜそうなったか考えてみましょう。";
+    }
+    s+="<br><span style='font-size:.86rem;color:#57646f'>乱数を使うため結果は毎回変わります。1回の結果だけで結論を出さず、リセットして繰り返してみましょう。</span>";
+  }
+  $("summary").innerHTML=s;
+}
+
+function drawQuestions(){
+  var base=[
+    "遺伝子頻度 p は、世代を重ねても変わらなかったか。変わったとすれば、どの条件がくずれていたからか。",
+    "AA・Aa・aa の実測値と期待値(Np²、2Npq、Nq²)を比べて、どのようなことがいえるか。"
+  ];
+  var extra={
+    0:["条件をすべて満たしていても p がわずかに上下するのはなぜか。N を 200 にすると、ゆらぎはどうなるか。"],
+    1:["5つの集団の p のばらつきは、N=20 と N=200 でどう違うか。p が 0 や 1 になった集団はその後どうなるか。"],
+    2:["aa が不利でも a がなかなか 0 にならないのはなぜか(ヒント:a はどの遺伝子型に隠れているか)。"],
+    3:["移入が続くと、この集団の p は最終的にどこへ近づくと考えられるか。"],
+    4:["p は変わらないのに Aa の個体数だけが減るのはなぜか。同類交配は「進化」といえるか。"],
+    5:["突然変異だけで遺伝子頻度が変わる速さは、自然選択の場合と比べて速いか遅いか。"]
+  };
+  var list=base.concat(extra[presetIdx]||[]);
+  $("questions").innerHTML=list.map(function(x){return "<li>"+x+"</li>";}).join("");
+}
+
+/* ================== 表示更新 ================== */
+function render(flash){
+  drawApp(); drawChart(); drawBars(); drawTable(); drawSummary(); drawQuestions();
+  if(flash){ var a=$("app"); a.classList.remove("flash"); void a.offsetWidth; a.classList.add("flash"); }
+  $("s1").disabled=(gen>=100); $("s10").disabled=(gen>=100);
+  $("runNote").textContent=(gen>=100)?"100世代に達しました。「第0世代に戻す」でもう一度実験できます。"
+    :"最大100世代まで進められます。";
+}
+
+/* ================== UI ================== */
+function buildOpts(boxId,key,warnFrom){
+  var box=$(boxId);
+  box.innerHTML="";
+  OPTS[key].forEach(function(o,i){
+    var b=document.createElement("button");
+    b.type="button"; b.textContent=o.t;
+    b.setAttribute("aria-pressed", (CFG[key]===o.v)?"true":"false");
+    if(warnFrom!==undefined && i>=warnFrom){ b.className="warn"; }
+    b.addEventListener("click",function(){
+      CFG[key]=o.v;
+      Array.prototype.forEach.call(box.children,function(x){x.setAttribute("aria-pressed","false");});
+      b.setAttribute("aria-pressed","true");
+      updateCondFlags(); resetExp();
+    });
+    box.appendChild(b);
+  });
+}
+function updateCondFlags(){
+  set($("cN"), CFG.N>=100, "条件①を満たす", "条件①がくずれている");
+  set($("cMu"), CFG.mu===0, "条件②を満たす", "条件②がくずれている");
+  set($("cW"), CFG.waa===1, "条件③を満たす", "条件③がくずれている");
+  set($("cM"), CFG.m===0, "条件④を満たす", "条件④がくずれている");
+  set($("cC"), CFG.c===0, "条件⑤を満たす", "条件⑤がくずれている");
+}
+function set(el,ok,t1,t2){
+  el.textContent=ok?("✓ "+t1):("✕ "+t2);
+  el.className="cond-ok"+(ok?"":" cond-ng");
+}
+function syncOpts(){
+  [["optN","N"],["optMu","mu"],["optW","waa"],["optM","m"],["optC","c"]].forEach(function(pair){
+    var box=$(pair[0]);
+    Array.prototype.forEach.call(box.children,function(b,i){
+      b.setAttribute("aria-pressed",(OPTS[pair[1]][i].v===CFG[pair[1]])?"true":"false");
+    });
+  });
+  $("p0").value=CFG.p0; $("p0v").textContent=f2(CFG.p0);
+  $("rep").checked=CFG.rep;
+  updateCondFlags();
+}
+
+document.querySelectorAll("#presets button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll("#presets button").forEach(function(x){x.setAttribute("aria-pressed","false");});
+    b.setAttribute("aria-pressed","true");
+    presetIdx=parseInt(b.dataset.k,10);
+    var P=PRESETS[presetIdx];
+    CFG.N=P.N; CFG.mu=P.mu; CFG.waa=P.waa; CFG.m=P.m; CFG.c=P.c; CFG.p0=P.p0; CFG.rep=P.rep;
+    $("presetNote").textContent=P.note;
+    guess=null;
+    document.querySelectorAll("#guess button").forEach(function(x){x.setAttribute("aria-pressed","false");});
+    syncOpts(); resetExp();
+  });
+});
+document.querySelectorAll("#guess button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll("#guess button").forEach(function(x){x.setAttribute("aria-pressed","false");});
+    b.setAttribute("aria-pressed","true");
+    guess=b.dataset.g; drawSummary();
+  });
+});
+$("p0").addEventListener("input",function(e){
+  CFG.p0=parseFloat(e.target.value); $("p0v").textContent=f2(CFG.p0); resetExp();
+});
+$("rep").addEventListener("change",function(e){ CFG.rep=e.target.checked; resetExp(); });
+$("s1").addEventListener("click",function(){ advance(1); });
+$("s10").addEventListener("click",function(){ advance(10); });
+$("reset").addEventListener("click",resetExp);
+$("auto").addEventListener("click",function(){
+  if(timer){ stopAuto(); } else {
+    $("auto").textContent="■ 停止";
+    timer=setInterval(function(){
+      if(gen>=100){ stopAuto(); return; }
+      advance(1);
+    },420);
+  }
+});
+function stopAuto(){ if(timer){ clearInterval(timer); timer=null; } $("auto").textContent="連続実行"; }
+
+/* ================== 初期化 ================== */
+buildOpts("optN","N");
+buildOpts("optMu","mu",1);
+buildOpts("optW","waa",1);
+buildOpts("optM","m",1);
+buildOpts("optC","c",1);
+$("presetNote").textContent=PRESETS[0].note;
+syncOpts();
+resetExp();
+</script>
+</body>
+</html>
